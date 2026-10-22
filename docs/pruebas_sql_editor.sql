@@ -1,11 +1,9 @@
+-- VERSIÓN PARA EL SQL EDITOR DE SUPABASE: pegar entero y pulsar Run.
+-- Al final sale un mensaje en ROJO a propósito con el resumen;
+-- al ser un error, deshace todos los datos de prueba.
 -- =========================================================
--- VERSIÓN PARA EL SQL EDITOR DE SUPABASE
--- Pegar entero y pulsar Run. Al final aparece un mensaje en ROJO
--- a propósito: es el resumen de resultados y, al ser un error,
--- deshace automáticamente todos los datos de prueba.
---
 -- PRUEBAS DE SEGURIDAD, AISLAMIENTO E INTEGRIDAD
--- (versión para línea de comandos: 001_seguridad_aislamiento.test.sql)
+-- Ejecutar con:  npx supabase test db
 -- Todo ocurre dentro de una transacción que se deshace al final.
 --
 -- Escenario: Partner A (cliente A, edificio A) y Partner B
@@ -19,7 +17,6 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-
 select plan(47);
 
 -- ---------------------------------------------------------
@@ -54,8 +51,8 @@ insert into recintos (id, id_planta, codigo, nombre, tipo) values
   ('a4000000-0000-0000-0000-000000000001', 'a3000000-0000-0000-0000-000000000001', 'R1', 'Nave A1', 'NAVE'),
   ('a4000000-0000-0000-0000-000000000002', 'a3000000-0000-0000-0000-000000000001', 'R2', 'Nave A2', 'NAVE'),
   ('b4000000-0000-0000-0000-000000000001', 'b3000000-0000-0000-0000-000000000001', 'R1', 'Oficina B', 'OFICINA');
-insert into conexiones (id, id_edificio, id_tipo_conexion, codigo, nombre)
-select x.id::uuid, x.ed::uuid, t.id, 'C1', 'Sentilo'
+insert into conexiones (id, id_edificio, id_tipo_conexion, codigo, nombre, configuracion)
+select x.id::uuid, x.ed::uuid, t.id, 'C1', 'Sentilo', '{"url_base": "https://sentilo.test", "proveedor": "PRUEBA"}'::jsonb
 from (values
   ('a5000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000001'),
   ('b5000000-0000-0000-0000-000000000001', 'b2000000-0000-0000-0000-000000000001')) x(id, ed),
@@ -282,20 +279,15 @@ insert into resultados (t) select throws_ok(
 insert into resultados (t) select is((select count(*) from verificar_rls()), 0::bigint, 'Todas las tablas de public tienen RLS');
 
 do $$
-declare
-  v_total int;
-  v_fallos int;
-  v_detalle text;
+declare v_total int; v_fallos int; v_detalle text;
 begin
   select count(*), count(*) filter (where t like 'not ok%'),
          string_agg(split_part(t, E'\n', 1), E'\n' order by n) filter (where t like 'not ok%')
-    into v_total, v_fallos, v_detalle
-  from resultados;
-
+    into v_total, v_fallos, v_detalle from resultados;
   if v_fallos = 0 and v_total = 47 then
     raise exception 'RESULTADO: % de 47 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
-    raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas por ejecutar)');
+    raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
   end if;
 end;
 $$;

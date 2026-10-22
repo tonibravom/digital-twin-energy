@@ -21,7 +21,7 @@ Antes de empezar, lea `docs/dimensionamiento.md` para elegir los recursos de Sup
 git clone <repositorio> plataforma
 cd plataforma
 npx supabase start          # arranca Supabase local en Docker
-npx supabase db reset       # aplica las 20 migraciones
+npx supabase db reset       # aplica las 26 migraciones
 npx supabase test db        # ejecuta las pruebas de seguridad: deben pasar todas
 ```
 

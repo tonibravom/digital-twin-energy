@@ -45,8 +45,8 @@ insert into recintos (id, id_planta, codigo, nombre, tipo) values
   ('a4000000-0000-0000-0000-000000000001', 'a3000000-0000-0000-0000-000000000001', 'R1', 'Nave A1', 'NAVE'),
   ('a4000000-0000-0000-0000-000000000002', 'a3000000-0000-0000-0000-000000000001', 'R2', 'Nave A2', 'NAVE'),
   ('b4000000-0000-0000-0000-000000000001', 'b3000000-0000-0000-0000-000000000001', 'R1', 'Oficina B', 'OFICINA');
-insert into conexiones (id, id_edificio, id_tipo_conexion, codigo, nombre)
-select x.id::uuid, x.ed::uuid, t.id, 'C1', 'Sentilo'
+insert into conexiones (id, id_edificio, id_tipo_conexion, codigo, nombre, configuracion)
+select x.id::uuid, x.ed::uuid, t.id, 'C1', 'Sentilo', '{"url_base": "https://sentilo.test", "proveedor": "PRUEBA"}'::jsonb
 from (values
   ('a5000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000001'),
   ('b5000000-0000-0000-0000-000000000001', 'b2000000-0000-0000-0000-000000000001')) x(id, ed),

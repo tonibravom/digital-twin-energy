@@ -16,11 +16,12 @@ Resumen para la revisión técnica del comprador.
 | Rol (qué puede hacer) | `usuarios.id_rol` → `roles_permisos` → `permisos` |
 | Alcance (sobre qué) | `usuarios_partners`, `usuarios_clientes` y `usuarios_edificios`, con alcance MASTER o RESTRINGIDO y vigencia por fechas |
 | Autorización | Funciones `private.usuario_puede_edificio(edificio, permiso)` y relacionadas, en un esquema no expuesto por la API |
-| Filas | Políticas RLS en las 55 tablas |
+| Filas | Políticas RLS en las 67 tablas |
 | Columnas y transiciones | Triggers que protegen cambios sensibles (cliente de un edificio, bajas) y funciones dedicadas para alarmas |
 | Integridad entre tenants | Triggers que impiden relacionar elementos de edificios distintos, aunque se use `service_role` |
+| Entrada de datos | Un único canal (`procesar_lecturas`), ejecutable solo por la API. Envío externo con token por conexión, guardado como huella SHA-256. Sin secretos en la configuración (Vault) |
 | Archivos 3D | Bucket privado. Acceso solo si existe el registro en `modelos_3d` y el usuario tiene permiso sobre el edificio |
-| Trazabilidad | Auditoría automática de 35 tablas de configuración. No se puede escribir ni modificar a mano |
+| Trazabilidad | Auditoría automática de 40 tablas de configuración. No se puede escribir ni modificar a mano |
 
 ## Claves
 
@@ -32,7 +33,7 @@ Resumen para la revisión técnica del comprador.
 
 ## Verificación
 
-- `npx supabase test db` ejecuta 47 pruebas. Entre ellas:
+- `npx supabase test db` ejecuta 240 pruebas (47 de seguridad, 51 de conectores y configuración, 24 de KPIs, 22 de la página de edificio, 18 de usos y Sankey, 28 de configuración de edificios, 22 de históricos y 28 de importación avanzada). Entre ellas:
   - anónimo sin acceso;
   - usuario registrado sin ficha que intenta hacerse administrador;
   - Partner A que intenta leer, crear o modificar datos del Partner B;
