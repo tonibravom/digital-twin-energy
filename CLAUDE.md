@@ -26,7 +26,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 | Pieza | Tecnología | Repo |
 |---|---|---|
 | Frontend | HTML + JavaScript, dashboard único | `dashboard-edificio` |
-| API / motor | Python + FastAPI | `digital-twin-api` |
+| API / motor | Python + FastAPI | `digital-twin-energy-api` |
 | BD | Supabase obligatorio (PostgreSQL + Auth + RLS + Storage bucket privado `modelos-3d`) | `supabase/migrations/` |
 
 ## Reglas de seguridad (no negociables)

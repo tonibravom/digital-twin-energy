@@ -65,7 +65,7 @@ En la recuperación automática, si la fecha pedida es anterior al límite de re
 
 Se ofrecen plantillas descargables de ambos formatos y de resúmenes.
 
-En la API (repositorio `digital-twin-api`), cada paso es una ruta: `vista-previa`, `simular`, confirmar (`POST /v1/edificios/{id}/importaciones`), `reanudar` y estado. Los resúmenes usan `POST /v1/edificios/{id}/resumenes`. El formato de los perfiles está en el README de la API.
+En la API (repositorio `digital-twin-energy-api`), cada paso es una ruta: `vista-previa`, `simular`, confirmar (`POST /v1/edificios/{id}/importaciones`), `reanudar` y estado. Los resúmenes usan `POST /v1/edificios/{id}/resumenes`. El formato de los perfiles está en el README de la API.
 
 ### Importación de lecturas (dentro del periodo de retención)
 
