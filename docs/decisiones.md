@@ -43,6 +43,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D31 | Conector **Sentilo** (consulta cada 15 min y recuperación de históricos) y **LoRaWAN** por webhook del servidor de red (The Things Stack y ChirpStack), con la carga decodificada en origen | §7 |
 | D32 | Los conectores se desarrollan y prueban con **simuladores** integrados en la API (solo desarrollo y demos), sin usar datos de edificios reales hasta tener un edificio propio | §7 |
 | D33 | La **tarea periódica** la dispara Supabase (pg_cron + pg_net) llamando a la API cada 15 minutos | §7 |
+| D34 | **Conector API REST genérico** configurable (JSON por GET o POST, autenticación, rutas, filtros y periodo). El simulador de demostración es una API REST neutra | §7 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -199,6 +200,12 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - Para la tarea: `conexiones_para_consultar`, `recuperaciones_pendientes`, `registrar_error_conexion`.
 - `private.llamar_api_tareas()` y el trabajo de pg_cron `api_ciclo_15min` (URL y secreto en Vault: `api_url`, `api_tareas_secreto`).
 - Guía: `docs/conectores.md`, apartados 10 a 13.
+
+## Migración 029 · Conector API REST genérico (26/10/2026)
+
+- `API_REST` pasa a llamarse "API REST (JSON)", admite recuperación de históricos y añade `parametro_desde`/`parametro_hasta`, `formato_parametros` y `ventana_horas`. `cabecera_api_key` se renombra a `cabecera_clave` (el control de secretos rechazaba cualquier clave con "api_key").
+- `trg_conexiones_validar_api_rest`: URL http(s), cabecera obligatoria con API_KEY y parámetros de periodo en pareja.
+- Guía: `docs/conectores.md`, apartado 10.
 
 ## Pendientes funcionales que debe cerrar el comprador
 

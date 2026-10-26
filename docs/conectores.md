@@ -122,7 +122,7 @@ La plataforma incluye una plantilla de ejemplo (`EJEMPLO_ENVIO_CONTADOR`). Las p
 | Protocolo | Configuración de la conexión | Dirección de cada punto |
 |---|---|---|
 | **Sentilo** | `url_base`, `proveedor`. El token se guarda en Vault (`PUT /v1/conexiones/{id}/secreto`) | `sensor` |
-| **API REST** | `url`, `metodo`, `autenticacion` (NINGUNA/BEARER/API_KEY/BASIC), `id_secreto`, `ruta_lista`, `campo_fecha`, `formato_fecha` | `ruta_valor`, `filtro` |
+| **API REST** | `url`, `metodo`, `autenticacion` (NINGUNA/BEARER/API_KEY/BASIC), `cabecera_clave`, `ruta_lista`, `campo_fecha`, `formato_fecha`, `parametro_desde`/`parametro_hasta`, `formato_parametros`, `ventana_horas`. La credencial, en Vault | `ruta_valor`, `filtro` |
 | **MQTT** | `host`, `puerto`, `tls`, `usuario`, `id_secreto` | `topic`, `ruta_valor`, `ruta_fecha` |
 | **Modbus TCP** | `host`, `puerto`, `id_unidad`, `orden_palabras` | `registro`, `tipo_registro` (HOLDING/INPUT/COIL/DISCRETO), `tipo_dato` (INT16…FLOAT64), `id_unidad` |
 | **OPC UA** | `endpoint`, `politica_seguridad`, `modo_seguridad`, `usuario`, `id_secreto` | `node_id`, `muestreo_ms` |
@@ -143,14 +143,36 @@ Cada lectura válida actualiza el estado de su sensor a COMUNICANDO. Cada 15 min
 
 Nunca se guardan en la configuración: la base de datos lo impide. Se guardan en **Supabase Vault** (cifrado), y la conexión solo guarda su identificador (`id_secreto`). Los tokens de envío se guardan como huella SHA-256: si alguien leyera la base de datos, no podría usarlos.
 
-## 10. Sentilo (consulta)
+## 10. API REST genérica (consulta)
 
-- Cada 15 minutos, la tarea de la API (`POST /v1/tareas/ciclo`, ver apartado 12) pide a Sentilo lo nuevo de cada sensor desde su última lectura: `GET {url_base}/data/{proveedor}/{sensor}?from&to&limit`, con la cabecera `IDENTITY_KEY`. Si el sensor no tiene lecturas, se pide el último día.
+Sirve para **cualquier API que entregue medidas en JSON**: plataformas IoT, nubes de fabricantes, Sentilo, sistemas de gestión con API… sin programar nada por cada origen (migración 029).
+
+Ejemplo. La API responde a `GET https://api.ejemplo.com/medidas?desde=…&hasta=…` con:
+
+```json
+{"datos": [{"punto": "CONT-GENERAL", "fecha": "2026-10-26T13:45:00Z", "valor": 1520.4}]}
+```
+
+| Parámetro | Valor en el ejemplo |
+|---|---|
+| `url` | `https://api.ejemplo.com/medidas` |
+| `autenticacion` / `cabecera_clave` | `API_KEY` / `X-API-Key` (la clave, en Vault) |
+| `ruta_lista` | `$.datos` (o `$` si la respuesta es directamente la lista) |
+| `campo_fecha` / `formato_fecha` | `fecha` / `ISO8601` (también `EPOCH_S`, `EPOCH_MS`) |
+| `parametro_desde` / `parametro_hasta` | `desde` / `hasta` (si la API los admite; sin ellos no se pueden recuperar históricos) |
+| `ventana_horas` | 24: horas que se piden en cada petición |
+| Sensor: `ruta_valor` / `filtro` | `valor` / `{"punto": "CONT-GENERAL"}` |
+
+Las rutas admiten campos anidados con punto (`data.value`, `meter.id`). Cada 15 minutos se pide lo nuevo desde la última lectura de los sensores, o el último día si aún no tienen. La recuperación de históricos avanza hasta 60 peticiones por ciclo.
+
+## 11. Sentilo (consulta)
+
+- Cada 15 minutos, la tarea de la API (`POST /v1/tareas/ciclo`, ver apartado 13) pide a Sentilo lo nuevo de cada sensor desde su última lectura: `GET {url_base}/data/{proveedor}/{sensor}?from&to&limit`, con la cabecera `IDENTITY_KEY`. Si el sensor no tiene lecturas, se pide el último día.
 - Las fechas de Sentilo están en UTC (`dd/MM/yyyyTHH:mm:ss`). Se piden en tramos de 7 días.
 - **Recuperación de históricos** (`solicitar_recuperacion`): en cada ciclo avanza hasta 8 semanas por conexión y lo carga como importación. Si Sentilo falla, la recuperación queda en ERROR con el motivo.
 - Los errores (token incorrecto, sensor inexistente…) quedan en `conexiones.ultimo_error` para el Partner.
 
-## 11. LoRaWAN (envío por webhook)
+## 12. LoRaWAN (envío por webhook)
 
 Los sensores inalámbricos LoRaWAN hablan con uno o varios **gateways** del edificio. Los gateways entregan los mensajes a un **servidor de red** (The Things Stack, ChirpStack o el que lleva integrado el propio gateway, como Milesight o Kerlink), que los descifra, los **decodifica** con el decodificador del fabricante y los reenvía a la plataforma.
 
@@ -163,7 +185,7 @@ Formatos admitidos (se detectan solos): The Things Stack v3 (`decoded_payload`) 
 
 En la plataforma, cada **campo** decodificado de un dispositivo es un sensor: dirección = `dev_eui` + `campo` (p. ej. `24E124710B000001` + `co2`). Los campos que llegan sin sensor configurado no dan error: se guardan en `conexiones.puntos_detectados` para que el asistente los ofrezca al Partner al configurar.
 
-## 12. Tarea periódica
+## 13. Tarea periódica
 
 Supabase llama a la API cada 15 minutos (pg_cron + pg_net, migración 028), así funciona aunque la API se duerma en un plan gratuito. Configuración, una vez por instalación:
 1. *Database > Extensions*: active **pg_cron** y **pg_net**.
@@ -175,10 +197,12 @@ Supabase llama a la API cada 15 minutos (pg_cron + pg_net, migración 028), así
 3. Ponga ese mismo secreto en la variable `TAREAS_SECRETO` de la API.
 4. Si activó las extensiones después de aplicar la 028, vuelva a ejecutar el bloque `do $$ … $$` del final de esa migración.
 
-## 13. Simuladores (desarrollo y demos)
+## 14. Simuladores (desarrollo y demos)
 
 Con `SIMULADOR_ACTIVO=true`, la API incluye:
-- **Sentilo simulado** en `https://<api>/simulador/sentilo` (proveedor libre, token = `SIMULADOR_SENTILO_TOKEN`). Sensores: `CONT-GENERAL` (kWh acumulados), `POT-GENERAL` (kW), `FV-PROD` (kWh FV acumulados), `TEMP-EXT` (°C) y `GAS-CONT` (m³ acumulados). Datos realistas de un edificio de oficinas, también del pasado (sirve para probar la recuperación de históricos).
+- **API REST simulada** en `https://<api>/simulador/api/medidas?desde=…&hasta=…` (cabecera `X-API-Key` = `SIMULADOR_API_KEY`). Puntos: `CONT-GENERAL` (kWh acumulados), `POT-GENERAL` (kW), `FV-PROD` (kWh FV acumulados), `TEMP-EXT` (°C) y `GAS-CONT` (m³ acumulados). Datos realistas de un edificio de oficinas, también del pasado (sirve para probar la recuperación de históricos).
+- **Sentilo simulado** en `https://<api>/simulador/sentilo` con los mismos puntos (token = `SIMULADOR_SENTILO_TOKEN`), para probar ese tipo de conexión.
+- El script `docs/demo_simuladores.sql` crea un edificio de demostración conectado a la API REST y al LoRaWAN simulados.
 - **Servidor LoRaWAN simulado:** en cada ciclo envía, con formato The Things Stack, un mensaje de cada dispositivo a la conexión cuyo token esté en `SIMULADOR_LORAWAN_TOKEN`:
 
 | DevEUI | Dispositivo | Campos |
@@ -189,11 +213,11 @@ Con `SIMULADOR_ACTIVO=true`, la API incluye:
 
 En producción, `SIMULADOR_ACTIVO=false`.
 
-## 14. Qué falta por construir (en la API)
+## 15. Qué falta por construir (en la API)
 
 | Pieza | Fase del plan |
 |---|---|
-| Conector API REST genérico | Fase 4 |
+| Paginación en el conector API REST (APIs que devuelven las medidas en varias páginas) | Cuando haga falta |
 | Suscriptor MQTT | Fase 4 o posterior |
 | Agente de pasarela Modbus/BACnet para el edificio | Posterior (ver decisión pendiente) |
 | Formularios generados a partir de los esquemas | Fase 3 |
