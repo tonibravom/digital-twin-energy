@@ -40,6 +40,9 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D28 | La contraseña inicial se **cambia obligatoriamente** en la primera entrada (mínimo 10 caracteres, letras y números) | §5 |
 | D29 | **Doble factor por email:** código de 6 cifras, válido 10 minutos, 5 intentos y máximo 5 códigos cada 15 minutos. Se pide en cada sesión nueva | §5 |
 | D30 | Doble factor **obligatorio** para el administrador de la plataforma y los administradores de Partner (`roles.requiere_doble_factor`, configurable) y **voluntario** para el resto | §5 |
+| D31 | Conector **Sentilo** (consulta cada 15 min y recuperación de históricos) y **LoRaWAN** por webhook del servidor de red (The Things Stack y ChirpStack), con la carga decodificada en origen | §7 |
+| D32 | Los conectores se desarrollan y prueban con **simuladores** integrados en la API (solo desarrollo y demos), sin usar datos de edificios reales hasta tener un edificio propio | §7 |
+| D33 | La **tarea periódica** la dispara Supabase (pg_cron + pg_net) llamando a la API cada 15 minutos | §7 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -187,6 +190,15 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - Altas: `validar_alta_usuario` (con la sesión de quien da de alta) → la API crea la cuenta en Supabase Auth → `registrar_usuario` (solo API, vuelve a comprobar permisos). Si el registro falla, la API borra la cuenta recién creada.
 - Gestión: `gestionar_usuario` (baja, reactivar, restablecer contraseña, activar o desactivar el doble factor propio). Nadie se da de baja a sí mismo; un técnico no gestiona a su administrador.
 - Guía: `docs/usuarios-acceso.md`.
+
+## Migración 028 · Sentilo, LoRaWAN, secretos y tarea periódica (26/10/2026)
+
+- Tipo de conexión `LORAWAN` (ENVÍO). Dirección del sensor: `dev_eui` + `campo`; el trigger `trg_sensores_clave_lorawan` calcula `clave = DEVEUI/campo`, así `procesar_lecturas` no cambia.
+- `conexiones.puntos_detectados`: campos recibidos sin sensor (`registrar_puntos_detectados`). `claves_conexion_token`: la API descarta lo no configurado.
+- Secretos en Vault: `conexiones.id_secreto`, `guardar_secreto_conexion` (Partner con MODIFICAR_CONEXION) y `secreto_conexion` (solo API).
+- Para la tarea: `conexiones_para_consultar`, `recuperaciones_pendientes`, `registrar_error_conexion`.
+- `private.llamar_api_tareas()` y el trabajo de pg_cron `api_ciclo_15min` (URL y secreto en Vault: `api_url`, `api_tareas_secreto`).
+- Guía: `docs/conectores.md`, apartados 10 a 13.
 
 ## Pendientes funcionales que debe cerrar el comprador
 

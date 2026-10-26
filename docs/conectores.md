@@ -19,7 +19,7 @@ Todos los protocolos acaban entregando las lecturas en un **formato estándar** 
 |---|---|---|---|
 | **CONSULTA** | La plataforma pide los datos cada X minutos | Sentilo, API REST | Plataformas municipales, nubes de fabricantes |
 | **SUSCRIPCIÓN** | La plataforma escucha un broker | MQTT | Sensores IoT que publican en un broker |
-| **ENVÍO** | El origen manda los datos a la plataforma | Envío HTTP (formato estándar) | Gateways, plataformas IoT de terceros, scripts propios |
+| **ENVÍO** | El origen manda los datos a la plataforma | Envío HTTP (formato estándar), **LoRaWAN** (webhook del servidor de red) | Gateways, sensores inalámbricos LoRaWAN, plataformas IoT de terceros |
 | **PASARELA** | Un equipo instalado en el edificio lee y reenvía | Modbus TCP, BACnet | Contadores y autómatas en la red local del edificio |
 
 **Importante sobre Modbus y BACnet.** Son protocolos de red local: la plataforma, que está en la nube, no puede llegar a un contador conectado a la red interna de un edificio. Hace falta un pequeño equipo en el edificio (un gateway comercial o un mini-PC con un agente) que lea los equipos y reenvíe las lecturas por **ENVÍO**. La plataforma guarda igualmente la configuración Modbus/BACnet de cada punto, para que esa pasarela sepa qué leer.
@@ -121,13 +121,14 @@ La plataforma incluye una plantilla de ejemplo (`EJEMPLO_ENVIO_CONTADOR`). Las p
 
 | Protocolo | Configuración de la conexión | Dirección de cada punto |
 |---|---|---|
-| **Sentilo** | `url_base`, `proveedor`, `id_secreto_token` | `sensor` |
+| **Sentilo** | `url_base`, `proveedor`. El token se guarda en Vault (`PUT /v1/conexiones/{id}/secreto`) | `sensor` |
 | **API REST** | `url`, `metodo`, `autenticacion` (NINGUNA/BEARER/API_KEY/BASIC), `id_secreto`, `ruta_lista`, `campo_fecha`, `formato_fecha` | `ruta_valor`, `filtro` |
 | **MQTT** | `host`, `puerto`, `tls`, `usuario`, `id_secreto` | `topic`, `ruta_valor`, `ruta_fecha` |
 | **Modbus TCP** | `host`, `puerto`, `id_unidad`, `orden_palabras` | `registro`, `tipo_registro` (HOLDING/INPUT/COIL/DISCRETO), `tipo_dato` (INT16…FLOAT64), `id_unidad` |
 | **OPC UA** | `endpoint`, `politica_seguridad`, `modo_seguridad`, `usuario`, `id_secreto` | `node_id`, `muestreo_ms` |
 | **BACnet** | `ip`, `puerto`, `instancia_dispositivo` | `tipo_objeto`, `instancia`, `propiedad` |
 | **Envío HTTP** | (nada; se genera un token) | `clave` |
+| **LoRaWAN** | `servidor_red` (THE_THINGS_STACK, CHIRPSTACK u OTRO); se genera un token | `dev_eui`, `campo` (la clave `DEVEUI/campo` se calcula sola) |
 
 Todas las conexiones tienen además:
 - `intervalo_segundos`: frecuencia de consulta, 900 por defecto (15 minutos);
@@ -142,12 +143,56 @@ Cada lectura válida actualiza el estado de su sensor a COMUNICANDO. Cada 15 min
 
 Nunca se guardan en la configuración: la base de datos lo impide. Se guardan en **Supabase Vault** (cifrado), y la conexión solo guarda su identificador (`id_secreto`). Los tokens de envío se guardan como huella SHA-256: si alguien leyera la base de datos, no podría usarlos.
 
-## 10. Qué falta por construir (en la API)
+## 10. Sentilo (consulta)
+
+- Cada 15 minutos, la tarea de la API (`POST /v1/tareas/ciclo`, ver apartado 12) pide a Sentilo lo nuevo de cada sensor desde su última lectura: `GET {url_base}/data/{proveedor}/{sensor}?from&to&limit`, con la cabecera `IDENTITY_KEY`. Si el sensor no tiene lecturas, se pide el último día.
+- Las fechas de Sentilo están en UTC (`dd/MM/yyyyTHH:mm:ss`). Se piden en tramos de 7 días.
+- **Recuperación de históricos** (`solicitar_recuperacion`): en cada ciclo avanza hasta 8 semanas por conexión y lo carga como importación. Si Sentilo falla, la recuperación queda en ERROR con el motivo.
+- Los errores (token incorrecto, sensor inexistente…) quedan en `conexiones.ultimo_error` para el Partner.
+
+## 11. LoRaWAN (envío por webhook)
+
+Los sensores inalámbricos LoRaWAN hablan con uno o varios **gateways** del edificio. Los gateways entregan los mensajes a un **servidor de red** (The Things Stack, ChirpStack o el que lleva integrado el propio gateway, como Milesight o Kerlink), que los descifra, los **decodifica** con el decodificador del fabricante y los reenvía a la plataforma.
+
+Configuración en el servidor de red:
+1. Integración **Webhook / HTTP** hacia `https://<api>/v1/lorawan/uplink`.
+2. Cabecera `Authorization: Bearer <token de la conexión>`.
+3. Decodificador de carga útil activado para cada tipo de dispositivo.
+
+Formatos admitidos (se detectan solos): The Things Stack v3 (`decoded_payload`) y ChirpStack v4 (`object`, evento `up`; el resto de eventos se ignora).
+
+En la plataforma, cada **campo** decodificado de un dispositivo es un sensor: dirección = `dev_eui` + `campo` (p. ej. `24E124710B000001` + `co2`). Los campos que llegan sin sensor configurado no dan error: se guardan en `conexiones.puntos_detectados` para que el asistente los ofrezca al Partner al configurar.
+
+## 12. Tarea periódica
+
+Supabase llama a la API cada 15 minutos (pg_cron + pg_net, migración 028), así funciona aunque la API se duerma en un plan gratuito. Configuración, una vez por instalación:
+1. *Database > Extensions*: active **pg_cron** y **pg_net**.
+2. En el SQL Editor, guarde en Vault la dirección de la API y un secreto largo y aleatorio:
+   ```sql
+   select vault.create_secret('https://<su-api>.onrender.com', 'api_url');
+   select vault.create_secret('<secreto>', 'api_tareas_secreto');
+   ```
+3. Ponga ese mismo secreto en la variable `TAREAS_SECRETO` de la API.
+4. Si activó las extensiones después de aplicar la 028, vuelva a ejecutar el bloque `do $$ … $$` del final de esa migración.
+
+## 13. Simuladores (desarrollo y demos)
+
+Con `SIMULADOR_ACTIVO=true`, la API incluye:
+- **Sentilo simulado** en `https://<api>/simulador/sentilo` (proveedor libre, token = `SIMULADOR_SENTILO_TOKEN`). Sensores: `CONT-GENERAL` (kWh acumulados), `POT-GENERAL` (kW), `FV-PROD` (kWh FV acumulados), `TEMP-EXT` (°C) y `GAS-CONT` (m³ acumulados). Datos realistas de un edificio de oficinas, también del pasado (sirve para probar la recuperación de históricos).
+- **Servidor LoRaWAN simulado:** en cada ciclo envía, con formato The Things Stack, un mensaje de cada dispositivo a la conexión cuyo token esté en `SIMULADOR_LORAWAN_TOKEN`:
+
+| DevEUI | Dispositivo | Campos |
+|---|---|---|
+| `24E124710B000001` | Sensor de ambiente (tipo AM307) | `temperature`, `humidity`, `co2`, `battery` |
+| `24E124136B000002` | Contador de agua por pulsos (tipo EM300-DI) | `water` (litros acumulados), `battery` |
+| `24E124746B000003` | Medidor de energía de climatización | `active_energy` (kWh acumulados), `power` (W) |
+
+En producción, `SIMULADOR_ACTIVO=false`.
+
+## 14. Qué falta por construir (en la API)
 
 | Pieza | Fase del plan |
 |---|---|
-| Endpoint `POST /api/v1/ingesta` (modo ENVÍO) | Fase 4 |
-| Conector Sentilo (modo CONSULTA) reutilizando el trabajo ya probado | Fase 4 |
 | Conector API REST genérico | Fase 4 |
 | Suscriptor MQTT | Fase 4 o posterior |
 | Agente de pasarela Modbus/BACnet para el edificio | Posterior (ver decisión pendiente) |
