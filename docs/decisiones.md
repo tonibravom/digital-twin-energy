@@ -36,6 +36,10 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D24 | Al crear una conexión cuyo origen guarda histórico (Sentilo, API REST, OPC UA), el Partner puede pedir la **recuperación automática** del pasado desde una fecha | §7, §15 |
 | D25 | **Solo el Partner** (y el administrador) importa históricos: permiso `IMPORTAR_HISTORICOS`. El cliente, ni siquiera el avanzado, no importa | §5 |
 | D26 | Toda importación pasa antes por una **simulación** que muestra qué se guardaría, qué se rechazaría y mínimos, máximos y medias por sensor | §15 |
+| D27 | **Altas de usuarios sin invitación:** el administrador de la plataforma y el Partner (administrador **y técnico**) crean usuarios con email y **contraseña inicial**. El técnico no puede crear administradores del Partner | §5 |
+| D28 | La contraseña inicial se **cambia obligatoriamente** en la primera entrada (mínimo 10 caracteres, letras y números) | §5 |
+| D29 | **Doble factor por email:** código de 6 cifras, válido 10 minutos, 5 intentos y máximo 5 códigos cada 15 minutos. Se pide en cada sesión nueva | §5 |
+| D30 | Doble factor **obligatorio** para el administrador de la plataforma y los administradores de Partner (`roles.requiere_doble_factor`, configurable) y **voluntario** para el resto | §5 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -173,6 +177,16 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - Recuperación automática: `tipos_conexion.admite_recuperacion`; en `conexiones`, `recuperar_desde`, `recuperacion_estado`, `recuperado_hasta` e `id_importacion_recuperacion`; funciones `solicitar_recuperacion` (ajusta la fecha al límite de retención y avisa) y `avanzar_recuperacion` (la usa la API) (D24).
 - Vía API para empresas IoT con el token de la conexión: `crear_importacion_token` y `procesar_lote_token`.
 - Guía: `docs/edificios-existentes-historicos.md`.
+
+## Migración 027 · Usuarios, contraseña inicial y doble factor (26/10/2026)
+
+- `roles.requiere_doble_factor` (ADMIN_SAAS y ADMIN_PARTNER), `usuarios.debe_cambiar_contrasena` y `usuarios.doble_factor` (voluntario).
+- `private.usuario_actual()` ya no reconoce al usuario mientras deba cambiar la contraseña o le falte el código en esa sesión: **RLS le niega todos los datos** aunque se salte la interfaz. Acepta también `aal2` por si en el futuro se usa el MFA nativo de Supabase.
+- `codigos_verificacion`: códigos cifrados (hash) ligados al `session_id` de Supabase Auth. Solo los usa la API (`crear_codigo_verificacion`, `verificar_codigo`).
+- `mi_cuenta()`: estado de la entrada para guiar al frontend (código pendiente, contraseña pendiente, acceso completo).
+- Altas: `validar_alta_usuario` (con la sesión de quien da de alta) → la API crea la cuenta en Supabase Auth → `registrar_usuario` (solo API, vuelve a comprobar permisos). Si el registro falla, la API borra la cuenta recién creada.
+- Gestión: `gestionar_usuario` (baja, reactivar, restablecer contraseña, activar o desactivar el doble factor propio). Nadie se da de baja a sí mismo; un técnico no gestiona a su administrador.
+- Guía: `docs/usuarios-acceso.md`.
 
 ## Pendientes funcionales que debe cerrar el comprador
 

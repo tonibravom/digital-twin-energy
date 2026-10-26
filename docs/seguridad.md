@@ -12,7 +12,7 @@ Resumen para la revisión técnica del comprador.
 
 | Capa | Mecanismo |
 |---|---|
-| Autenticación | Supabase Auth, con el registro público desactivado (solo por invitación). Las contraseñas nunca se guardan en tablas de la aplicación |
+| Autenticación | Supabase Auth con email y contraseña, y el registro público desactivado: solo el administrador o el Partner dan de alta usuarios. Contraseña inicial de cambio obligatorio y **código por email** (doble factor) obligatorio para administradores. Mientras falte un paso, RLS no muestra ningún dato. Las contraseñas nunca se guardan en tablas de la aplicación |
 | Rol (qué puede hacer) | `usuarios.id_rol` → `roles_permisos` → `permisos` |
 | Alcance (sobre qué) | `usuarios_partners`, `usuarios_clientes` y `usuarios_edificios`, con alcance MASTER o RESTRINGIDO y vigencia por fechas |
 | Autorización | Funciones `private.usuario_puede_edificio(edificio, permiso)` y relacionadas, en un esquema no expuesto por la API |
@@ -30,10 +30,11 @@ Resumen para la revisión técnica del comprador.
 | `anon` / *publishable* | Frontend (es pública por diseño) |
 | `service_role` / *secret* | **Solo** en las variables de entorno del servidor de la API |
 | Contraseña de la base de datos | Gestor de contraseñas del administrador |
+| Clave del servicio de email (`BREVO_API_KEY` o `SMTP_CONTRASENA`) | **Solo** en las variables de entorno de la API |
 
 ## Verificación
 
-- `npx supabase test db` ejecuta 240 pruebas (47 de seguridad, 51 de conectores y configuración, 24 de KPIs, 22 de la página de edificio, 18 de usos y Sankey, 28 de configuración de edificios, 22 de históricos y 28 de importación avanzada). Entre ellas:
+- `npx supabase test db` ejecuta 277 pruebas (47 de seguridad, 51 de conectores y configuración, 24 de KPIs, 22 de la página de edificio, 18 de usos y Sankey, 28 de configuración de edificios, 22 de históricos, 28 de importación avanzada y 37 de usuarios y acceso). Entre ellas:
   - anónimo sin acceso;
   - usuario registrado sin ficha que intenta hacerse administrador;
   - Partner A que intenta leer, crear o modificar datos del Partner B;

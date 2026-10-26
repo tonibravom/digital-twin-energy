@@ -88,7 +88,7 @@ insert into estado_comunicacion (id_sensor, ultima_lectura, ultimo_valor) values
 
 create function pg_temp.login(p_auth uuid) returns void language sql as $$
   select set_config('request.jwt.claim.sub', p_auth::text, true),
-         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated')::text, true);
+         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- =========================================================

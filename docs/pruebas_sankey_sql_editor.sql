@@ -62,7 +62,7 @@ join usos_energia u on u.codigo = x.c;
 
 create function pg_temp.login(p_auth uuid) returns void language sql as $$
   select set_config('request.jwt.claim.sub', p_auth::text, true),
-         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated')::text, true);
+         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 create function pg_temp.enlace(p_origen text, p_destino text, p_campo text default 'valor') returns numeric language sql as $$

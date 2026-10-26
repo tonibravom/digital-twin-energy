@@ -44,12 +44,11 @@ En *Authentication*:
 | Ajuste | Valor | Motivo |
 |---|---|---|
 | *Sign In / Providers > Email* | Activado | Acceso con email y contraseña |
-| **Allow new users to sign up** | **Desactivado** | Los usuarios se crean por invitación desde la plataforma. Es esencial para la seguridad |
-| *Emails > SMTP Settings* | Servidor SMTP propio | El SMTP incluido en Supabase tiene límites muy bajos y no sirve para producción |
-| *URL Configuration > Site URL* | URL pública del frontend | Enlaces de invitación y recuperación de contraseña |
-| *Redirect URLs* | URL del frontend | Igual que el anterior |
+| **Allow new users to sign up** | **Desactivado** | Los usuarios los da de alta el administrador o el Partner desde la plataforma. Es esencial para la seguridad |
+| *Sign In / Providers > Email > Minimum password length* | 10 | Igual que la regla de la plataforma |
+| *URL Configuration > Site URL* | URL pública del frontend | Redirecciones tras iniciar sesión |
 
-Personalice las plantillas de email (*Emails > Templates*) con la marca del comprador.
+Supabase no envía ningún email: los códigos de doble factor los envía la API con el servicio de email configurado (paso 6).
 
 ## 4. Aplicar las migraciones
 
@@ -81,6 +80,8 @@ select public.instalar_administrador(
 
 Esta función solo funciona mientras no exista ningún administrador. Los demás usuarios se crean desde la aplicación, que llama a la API.
 
+El administrador **necesita el código por email** en cada sesión: configure el servicio de email de la API (paso 6) antes de entrar por primera vez.
+
 ## 6. Desplegar la API
 
 Variables de entorno de la API (nunca en el código ni en el repositorio):
@@ -90,9 +91,10 @@ Variables de entorno de la API (nunca en el código ni en el repositorio):
 | `SUPABASE_URL` | `https://<ref>.supabase.co` | *Project Settings > API* |
 | `SUPABASE_SERVICE_ROLE_KEY` | clave `service_role` / *secret* | *Project Settings > API Keys*. **Solo en el backend** |
 | `SUPABASE_ANON_KEY` | clave `anon` / *publishable* | *Project Settings > API Keys* |
-| `DATABASE_URL` | cadena de conexión (pooler) | *Connect > Connection string*, modo *Transaction* |
-| `FRONTEND_URL` | URL del frontend | Para CORS |
-| `SMTP_*` | datos del servidor de correo | Proveedor SMTP |
+| `ORIGENES_CORS` | URL del frontend | Para CORS |
+| `EMAIL_PROVEEDOR` | `brevo` o `smtp` | Envío de los códigos de doble factor (ver README de la API) |
+| `EMAIL_REMITENTE` | dirección verificada en el proveedor | Proveedor de email |
+| `BREVO_API_KEY` o `SMTP_*` | clave del proveedor | Proveedor de email. **Solo en el backend** |
 
 La clave `service_role` salta todas las protecciones de la base de datos. Solo debe existir en las variables de entorno del servidor de la API.
 

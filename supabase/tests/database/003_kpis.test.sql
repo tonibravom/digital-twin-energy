@@ -77,7 +77,7 @@ insert into usuarios_clientes (id_usuario, id_cliente) values
 
 create function pg_temp.login(p_auth uuid) returns void language sql as $$
   select set_config('request.jwt.claim.sub', p_auth::text, true),
-         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated')::text, true);
+         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- Valor de un indicador de kpis_ambito a 30/06/2026

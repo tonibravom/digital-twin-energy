@@ -56,7 +56,7 @@ from tipos_conexion where codigo = 'MODBUS_TCP';
 
 create function pg_temp.login(p_auth uuid) returns void language sql as $$
   select set_config('request.jwt.claim.sub', p_auth::text, true),
-         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated')::text, true);
+         set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- =========================================================
@@ -263,7 +263,7 @@ reset role;
 
 select ok((select token like 'dte\_%' and length(token) > 60 from tk), 'El Partner A genera el token de su conexión');
 select is((select (procesar_lecturas_token((select token from tk), jsonb_build_array(
-            jsonb_build_object('clave', 'TEMP-01', 'fecha_hora', to_char((date_trunc('hour', now())) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'valor', 22)
+            jsonb_build_object('clave', 'TEMP-01', 'fecha_hora', to_char((date_trunc('hour', now()) - interval '15 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'valor', 22)
           ))->>'guardadas')::int), 1, 'Con el token se envían lecturas');
 select throws_ok($$ select procesar_lecturas_token('dte_token_falso', '[]') $$, '28000', null,
   'Un token falso se rechaza');

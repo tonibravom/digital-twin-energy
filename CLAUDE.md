@@ -16,7 +16,8 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
   - `docs/pantallas.md` (navegación, plantilla de ámbito de 3 niveles, KPIs, listas y permisos);
   - `docs/pagina-edificio.md` (pestañas HOY, 3D, Históricos, Alarmas, Ficha, Análisis y Configuración);
   - `docs/configuracion-edificio.md` (alta guiada, edición, sustituciones, GLB, Excel, calendario);
-  - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo).
+  - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo);
+  - `docs/usuarios-acceso.md` (altas, contraseña inicial, doble factor por email).
 - Si el código contradice esos documentos, PREGUNTAR antes de cambiar nada.
 
 ## Alcance actual
@@ -39,7 +40,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
    - `revoke all ... from public, anon`;
    - `grant execute` solo a quien toque.
 5. Toda relación entre entidades valida que pertenecen al mismo edificio mediante un trigger, aunque RLS ya filtre.
-6. Usuarios, roles y asignaciones solo se escriben desde la API (`service_role`), nunca desde el navegador.
+6. Usuarios, roles y asignaciones solo se escriben desde la API (`service_role`), nunca desde el navegador. Toda comprobación de acceso pasa por `private.usuario_actual()`, que exige contraseña cambiada y, si aplica, el código por email de la sesión.
 7. **Toda lectura entra por `public.procesar_lecturas()`** (o `procesar_lecturas_token`; los históricos, por `procesar_lote_lecturas` o `procesar_lote_token`). Ningún conector inserta directamente en `lecturas`. Protocolos nuevos = fila en `tipos_conexion` con sus esquemas + conector en la API; nunca tablas por protocolo. Ver `docs/conectores.md`.
 8. **Energía consumida** = electricidad importada + gas + renovable consumida (FV y eólica − exportada + térmicas). Emisiones: solo importada y gas. Misma definición en KPIs, HOY y Sankey.
 9. Los KPIs de los dashboards salen SIEMPRE de `kpis_ambito` / `kpis_lista` (sobre `resumenes_diarios`), y la página de edificio de `hoy_edificio`, `serie_magnitud`, `serie_sensor` y `sensores_estado_edificio`. Nunca se suman lecturas desde la web.
@@ -66,6 +67,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (240 a 22/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación)
+npx supabase test db        # pruebas pgTAP (277 a 26/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```
