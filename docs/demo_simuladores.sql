@@ -5,7 +5,7 @@
 -- Crea (si no existen) un Partner, un cliente y un edificio de oficinas de
 -- demostración con dos conexiones:
 --   - API_REST → API REST simulada que la plataforma consulta (GET, JSON) cada 15 min:
---                5 sensores + 30 días de histórico
+--                6 sensores + 30 días de histórico
 --   - LORAWAN  → el servidor LoRaWAN simulado (3 dispositivos, 6 sensores)
 -- y genera los secretos que hay que poner en Render. Cada ejecución genera
 -- secretos NUEVOS: actualice entonces las variables de Render.
@@ -101,6 +101,7 @@ begin
   from (values
     (v_rest, v_sala, 'CONT-GENERAL', 'Contador general de electricidad', '{"ruta_valor": "valor", "filtro": {"punto": "CONT-GENERAL"}}', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 1.0, null),
     (v_rest, v_sala, 'POT-GENERAL', 'Potencia del contador general', '{"ruta_valor": "valor", "filtro": {"punto": "POT-GENERAL"}}', 'POTENCIA', 'INSTANTANEA', 'PROMEDIO', 'kW', 'ELECTRICIDAD', 'CONSUMO', 1.0, null),
+    (v_rest, v_sala, 'FP-GENERAL', 'Factor de potencia del contador general', '{"ruta_valor": "valor", "filtro": {"punto": "FP-GENERAL"}}', 'FACTOR_POTENCIA', 'INSTANTANEA', 'PROMEDIO', '-', 'ELECTRICIDAD', 'CONSUMO', 1.0, null),
     (v_rest, v_sala, 'FV-PROD', 'Producción fotovoltaica', '{"ruta_valor": "valor", "filtro": {"punto": "FV-PROD"}}', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'GENERACION', 1.0, null),
     (v_rest, v_vestibulo, 'TEMP-EXT', 'Temperatura exterior', '{"ruta_valor": "valor", "filtro": {"punto": "TEMP-EXT"}}', 'TEMPERATURA', 'INSTANTANEA', 'PROMEDIO', '°C', null, null, 1.0, null),
     (v_rest, v_sala, 'GAS-CONT', 'Contador de gas', '{"ruta_valor": "valor", "filtro": {"punto": "GAS-CONT"}}', 'OTRA', 'ACUMULATIVA', 'DELTA', 'm³', 'GAS', 'CONSUMO', 1.0, null),

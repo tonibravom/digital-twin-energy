@@ -46,21 +46,20 @@ Un usuario de cliente con un solo edificio entra directamente aquí (no ve la ru
 
 Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin calendario cargado, se considera laborable de lunes a viernes.
 
-**Contenido:**
+**Disposición (D41, 27/10/2026):** la pantalla se divide en dos columnas y, al bajar, la curva y el Sankey.
 
-| Bloque | Detalle |
+| Zona | Contenido |
 |---|---|
-| KPIs del día | Energía consumida (importada + gas + renovable consumida), emisiones, agua y generación renovable, cada uno con su variación frente al día comparable; potencia actual (kW); % de cobertura renovable |
-| **Curva de carga** | Energía cada 15 min de hoy (hasta ahora) sobre la curva completa del día comparable. El **horario de funcionamiento** aparece sombreado |
-| **Consumo fuera de horario** | kWh y % del consumo de hoy fuera del horario (en día no laborable, todo). Al lado, el del día comparable |
-| Reparto | Consumo por planta o recinto (barras) |
-| Alarmas y comunicación | Alarmas activas y sensores sin comunicación, con acceso a su ficha |
-| Año en curso | La franja de KPIs del dashboard (año frente al anterior), solo de este edificio |
-| Ambiente | Temperatura, humedad y CO₂ interior, si hay sensores |
+| Izquierda: **Energía total consumida** | Total del día (importada + gas + renovable consumida), su variación frente al día comparable hasta la misma hora, el desglose por fuente con su valor (electricidad de la red, gas, renovables: solo las que tenga el edificio) y las **emisiones totales**, sin separar por fuente |
+| Izquierda: **Potencia** | Último valor (kW), variación frente al día comparable a la misma hora y **factor de potencia** (en naranja si es menor de 0,90) |
+| Izquierda: **Agua** | Consumo de hoy (m³) |
+| Derecha | El **gemelo 3D** si el edificio tiene modelo; si no, la **lista de sensores** con su último valor y estado. Con 3D no se muestra la lista |
+| Debajo: **Curva de carga** | Energía cada 15 min de hoy sobre la del día comparable. Las franjas **fuera del horario** de funcionamiento aparecen sombreadas (todo el día si no es laborable) |
+| Debajo: **Diagrama Sankey** | De dónde viene la energía y a qué usos va (hoy, 7 o 30 días); lo no medido por submedidores aparece como estimado |
 
-Se actualiza sola cada minuto. Los datos llegan cada 15 minutos.
+El consumo fuera de horario no tiene tarjeta propia: se trata en **Alarmas y avisos**.
 
-*Soporte (023):* `hoy_edificio(edificio)` devuelve todo lo anterior en una sola llamada; `kpis_ambito('EDIFICIO', id)` da el año en curso.
+*Soporte:* `hoy_edificio(edificio)` (023) devuelve los consumos, la curva y el horario; `potencia_edificio(edificio)` (033), la potencia, su comparación y el factor de potencia; `sankey_energia` (024), el diagrama; `kpis_ambito('EDIFICIO', id)`, el año en curso.
 
 ## 3. 3D
 

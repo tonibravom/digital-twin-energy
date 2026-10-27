@@ -50,6 +50,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D38 | **Edición de usuarios** (27/10/2026): nombre, apellidos, teléfono, rol dentro del mismo tipo (plataforma, Partner o cliente) y asignaciones. El email y el Partner no cambian; para otro tipo de usuario, baja y alta nueva. Sobre uno mismo, solo los datos personales | §5 |
 | D39 | **Alta sin contraseña** (27/10/2026): quien da de alta solo indica email, nombre, rol y ámbito. La cuenta se crea con una contraseña aleatoria que nadie ve, el usuario recibe un **email de bienvenida** y elige su contraseña con «¿Primera vez o ha olvidado la contraseña?». El antiguo «restablecer contraseña» pasa a ser **«Anular contraseña»** (para contraseñas comprometidas). Sustituye a la contraseña inicial de D28 | §5 |
 | D40 | **Motor de cálculo en la base de datos** (27/10/2026): funciones SQL ejecutadas por pg_cron cada 15 minutos (no por la API). Solo calcula por edificio; Cliente, Partner y Plataforma suman los resúmenes de sus edificios al consultar. Intervalos de 15 min; contadores repartidos en el tiempo; gas en m³ → kWh con FACTOR_CONVERSION_GAS (11,70 kWh/m³) | §8 |
+| D41 | **Pestaña Hoy** (27/10/2026): dos columnas (KPIs a la izquierda; 3D o, sin 3D, lista de sensores a la derecha) y debajo la curva de 15 min con el horario sombreado y el Sankey. KPI «Energía total consumida» con desglose por fuente y emisiones totales; KPI «Potencia» con factor de potencia, ambos comparados con el día comparable. Sin tarjetas de emisiones, renovable ni fuera de horario (este va a alarmas y avisos) | §9 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -239,6 +240,12 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - **Ejecución:** `call motor_ejecutar()` (pg_cron `motor_15min`, minutos 5, 20, 35 y 50): tramos de 7 días, confirma cada tramo, máximo 240 s, sin solaparse. `estado_motor(edificio)` para la interfaz.
 - Parámetro `FACTOR_CONVERSION_GAS` en `parametros_saas`. Si se cambia, hay que pedir un recálculo del periodo (insertar en `recalculos_pendientes`).
 - Demo: `docs/demo_motor.sql` configura las magnitudes del edificio DEMO-OFICINAS.
+
+## Migración 033 · Potencia en la pestaña Hoy (27/10/2026)
+
+- Magnitud `FACTOR_POTENCIA` (sin unidad; un único sensor).
+- `potencia_edificio(edificio)`: potencia y factor de potencia de la última hora, y la potencia del día comparable a la misma hora.
+- Simulador: punto `FP-GENERAL` (factor de potencia, peor con poca carga). `docs/demo_motor.sql` crea el sensor en la demo y pide su histórico.
 
 ## Pendientes funcionales que debe cerrar el comprador
 

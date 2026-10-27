@@ -11,6 +11,9 @@
 --   GAS-CONT     → Consumo de gas (m³ → kWh con FACTOR_CONVERSION_GAS)
 --   AGUA-CONT    → Consumo de agua
 --   POT-GENERAL  → Potencia total
+--   FP-GENERAL   → Factor de potencia (crea el sensor si no existe y pide
+--                  a la API REST simulada los 30 días de histórico; requiere
+--                  la API 0.7.1 o posterior, que simula ese punto)
 --   CLIMA-E      → submedidor de Climatización (uso, para el Sankey)
 --   Gas sin submedidor: 100 % climatización (reparto estimado)
 --   Horario: laborables de lunes a viernes de 08:00 a 19:00 (para
@@ -26,6 +29,7 @@ declare
   r record;
   v_me uuid;
   v_sensor uuid;
+  v_rest uuid;
 begin
   select id into v_edif from public.edificios where codigo = 'DEMO-OFICINAS';
   if v_edif is null then
@@ -33,12 +37,36 @@ begin
   end if;
   select id into v_hvac from public.usos_energia where codigo = 'HVAC_CLIMATIZACION';
 
+  -- Sensor de factor de potencia en la conexión API REST (si no existe)
+  select c.id into v_rest from public.conexiones c join public.tipos_conexion t on t.id = c.id_tipo_conexion
+  where c.id_edificio = v_edif and t.codigo = 'API_REST' and c.activo limit 1;
+  if v_rest is not null and not exists (
+       select 1 from public.sensores s where s.codigo = 'FP-GENERAL' and s.activo
+         and public.obtener_edificio_recinto(s.id_recinto) = v_edif) then
+    insert into public.sensores (id_conexion, id_recinto, codigo, nombre, direccion, id_familia, id_naturaleza,
+                                 id_tratamiento, unidad, id_tipo_energia, id_flujo_energia, escala)
+    select v_rest, rc.id, 'FP-GENERAL', 'Factor de potencia del contador general',
+           '{"ruta_valor": "valor", "filtro": {"punto": "FP-GENERAL"}}'::jsonb,
+           f.id, n.id, tr.id, '-', te.id, fe.id, 1.0
+    from public.recintos rc join public.plantas p on p.id = rc.id_planta,
+         public.familias_sensor f, public.naturalezas_sensor n, public.tratamientos_sensor tr,
+         public.tipos_energia te, public.flujos_energia fe
+    where p.id_edificio = v_edif and rc.codigo = 'SALA-INST'
+      and f.codigo = 'FACTOR_POTENCIA' and n.codigo = 'INSTANTANEA' and tr.codigo = 'PROMEDIO'
+      and te.codigo = 'ELECTRICIDAD' and fe.codigo = 'CONSUMO';
+    -- Histórico de 30 días del punto nuevo (las lecturas ya guardadas no se duplican)
+    if (select coalesce(recuperacion_estado, '') from public.conexiones where id = v_rest) not in ('PENDIENTE', 'EN_CURSO') then
+      perform public.solicitar_recuperacion(v_rest, current_date - 30);
+    end if;
+  end if;
+
   for r in select * from (values
       ('CONSUMO_ELECTRICIDAD', 'CONT-GENERAL'),
       ('GENERACION_FOTOVOLTAICA', 'FV-PROD'),
       ('CONSUMO_GAS', 'GAS-CONT'),
       ('CONSUMO_AGUA', 'AGUA-CONT'),
-      ('POTENCIA_TOTAL', 'POT-GENERAL')) x(magnitud, sensor)
+      ('POTENCIA_TOTAL', 'POT-GENERAL'),
+      ('FACTOR_POTENCIA', 'FP-GENERAL')) x(magnitud, sensor)
   loop
     select me.id into v_me
     from public.magnitudes_edificio me join public.magnitudes m on m.id = me.id_magnitud
