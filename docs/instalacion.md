@@ -96,6 +96,8 @@ Variables de entorno de la API (nunca en el código ni en el repositorio):
 | `EMAIL_REMITENTE` | dirección verificada en el proveedor | Proveedor de email |
 | `BREVO_API_KEY` o `SMTP_*` | clave del proveedor | Proveedor de email. **Solo en el backend** |
 
+Con Brevo: remitente con **dominio propio** autenticado (DKIM y DMARC), clave *Restricted* con solo *Transactional emails: All* copiada entera (`xkeysib-…`) y el bloqueo de *IP autorizadas* desactivado para claves de API. Detalle en el README de la API.
+
 La clave `service_role` salta todas las protecciones de la base de datos. Solo debe existir en las variables de entorno del servidor de la API.
 
 ## 7. Desplegar el frontend
