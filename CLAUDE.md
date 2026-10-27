@@ -17,7 +17,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
   - `docs/pagina-edificio.md` (pestañas HOY, 3D, Históricos, Alarmas, Ficha, Análisis y Configuración);
   - `docs/configuracion-edificio.md` (alta guiada, edición, sustituciones, GLB, Excel, calendario);
   - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo);
-  - `docs/usuarios-acceso.md` (altas, contraseña inicial, doble factor por email).
+  - `docs/usuarios-acceso.md` (altas, contraseña inicial, doble factor y recuperación de contraseña por email).
 - Si el código contradice esos documentos, PREGUNTAR antes de cambiar nada.
 
 ## Alcance actual
@@ -26,7 +26,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ## Arquitectura
 | Pieza | Tecnología | Repo |
 |---|---|---|
-| Frontend | HTML + JavaScript, dashboard único | `dashboard-edificio` |
+| Frontend | Vue 3 + Vite, sitio estático en Render | `digital-twin-energy-web` |
 | API / motor | Python + FastAPI | `digital-twin-energy-api` |
 | BD | Supabase obligatorio (PostgreSQL + Auth + RLS + Storage bucket privado `modelos-3d`) | `supabase/migrations/` |
 
@@ -67,6 +67,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (307 a 26/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST)
+npx supabase test db        # pruebas pgTAP (318 a 27/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```

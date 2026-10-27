@@ -33,6 +33,14 @@ Las mismas reglas se aplican para restablecer la contraseña de otro usuario, da
 - **Obligatorio** para el administrador de la plataforma y los administradores de Partner. **Voluntario** para técnicos y clientes, que lo activan desde su perfil.
 - Qué roles lo exigen se cambia en la base de datos: `update roles set requiere_doble_factor = true where codigo = '...'`.
 
+## 3 bis. Recuperación de contraseña
+
+1. En la pantalla de acceso, **¿Has olvidado la contraseña?** → el usuario escribe su email.
+2. Si es de un usuario activo, recibe un **código de 6 cifras**. La pantalla responde siempre lo mismo, exista o no el email, para no revelar quién tiene cuenta.
+3. Introduce el código y la contraseña nueva (mismas reglas del apartado 2). Ya no tendrá que cambiarla al entrar.
+
+Límites: el código caduca a los **15 minutos**, admite **5 intentos**, como máximo **3 códigos por hora** por usuario y 10 peticiones cada 15 minutos desde la misma conexión. Pedir un código nuevo anula el anterior. Recuperar la contraseña **no** sustituye al doble factor: al entrar, quien lo tenga recibirá además el código de acceso.
+
 ## 4. Orden de la entrada
 
 1. Email y contraseña (Supabase Auth).
@@ -51,6 +59,7 @@ Mientras falte el paso 2 o el 3, **la base de datos no le muestra ningún dato**
 | `POST /v1/sesion/verificar` | Comprueba el código |
 | `POST /v1/mi-cuenta/contrasena` | Cambia la propia contraseña |
 | `PUT /v1/mi-cuenta/doble-factor` | Activa o desactiva el doble factor voluntario |
+| `POST /v1/recuperacion/solicitar` y `/confirmar` | Recuperación de contraseña con código (sin sesión) |
 | `POST /v1/usuarios` | Alta con contraseña inicial |
 | `POST /v1/usuarios/{id}/contrasena` | Restablece la contraseña de otro usuario |
 | `POST /v1/usuarios/{id}/baja` y `/reactivar` | Baja y reactivación, que también bloquean o desbloquean la cuenta en Supabase Auth |

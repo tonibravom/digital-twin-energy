@@ -45,6 +45,8 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D33 | La **tarea periódica** la dispara Supabase (pg_cron + pg_net) llamando a la API cada 15 minutos | §7 |
 | D34 | **Conector API REST genérico** configurable (JSON por GET o POST, autenticación, rutas, filtros y periodo). El simulador de demostración es una API REST neutra | §7 |
 | D35 | El doble factor se mantiene **solo por email** (27/10/2026). Se valoró la app de códigos TOTP (gratuita en Supabase): queda como mejora futura; la base de datos ya acepta `aal2` | §5 |
+| D36 | **Recuperación de contraseña con código por email** (27/10/2026): "¿Has olvidado la contraseña?" envía un código de 6 cifras y con él el usuario elige una contraseña nueva. La respuesta es la misma exista o no el email | §5 |
+| D37 | **Frontend en Vue 3 + Vite** (repositorio `digital-twin-energy-web`), sitio estático en Render. Lee los datos con la clave pública de Supabase y la sesión del usuario (RLS); las acciones que lo requieren pasan por la API | §8 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -207,6 +209,14 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - `API_REST` pasa a llamarse "API REST (JSON)", admite recuperación de históricos y añade `parametro_desde`/`parametro_hasta`, `formato_parametros` y `ventana_horas`. `cabecera_api_key` se renombra a `cabecera_clave` (el control de secretos rechazaba cualquier clave con "api_key").
 - `trg_conexiones_validar_api_rest`: URL http(s), cabecera obligatoria con API_KEY y parámetros de periodo en pareja.
 - Guía: `docs/conectores.md`, apartado 10.
+
+## Migración 030 · Recuperación de contraseña (27/10/2026)
+
+- `codigos_recuperacion`: códigos cifrados (hash), 15 minutos, 5 intentos y como máximo 3 por hora y usuario. Pedir uno nuevo anula el anterior. Con RLS y sin políticas: solo la API.
+- `crear_codigo_recuperacion(email, código)`: devuelve null si el email no es de un usuario activo o ha pedido demasiados; la API responde lo mismo en todos los casos.
+- `usar_codigo_recuperacion(email, código)`: `OK` (marca el código como usado y quita la obligación de cambiar la contraseña, porque la elige el propio usuario), `INCORRECTO` con los intentos restantes, `BLOQUEADO` o `NO_VALIDO`.
+- La API añade un límite por IP (10 peticiones cada 15 minutos) y cambia la contraseña en Supabase Auth.
+- Guía: `docs/usuarios-acceso.md`, apartado 3 bis.
 
 ## Pendientes funcionales que debe cerrar el comprador
 
