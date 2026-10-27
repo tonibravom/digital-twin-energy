@@ -104,7 +104,7 @@ Para analizar históricos (laborables, festivos, consumo fuera de horario), el P
 
 ### Recálculo
 
-Tras cada carga, el motor (Fase 5) procesa `recalculos_pendientes` y rehace `valores_magnitud`, `resumenes_diarios` y los resúmenes por uso de ese periodo. Es un **requisito del motor**: debe poder recalcular cualquier rango de fechas, no solo los datos nuevos.
+Tras cada carga, el motor (migración 032) recalcula automáticamente el periodo cargado —las lecturas nuevas lo anotan en su cola— y rehace `valores_magnitud`, `resumenes_diarios` y los resúmenes por uso de ese periodo. Es un **requisito del motor**: debe poder recalcular cualquier rango de fechas, no solo los datos nuevos.
 
 ## 3. Qué no se hace (por ahora)
 

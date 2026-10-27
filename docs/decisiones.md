@@ -49,6 +49,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D37 | **Frontend en Vue 3 + Vite** (repositorio `digital-twin-energy-web`), sitio estático en Render. Lee los datos con la clave pública de Supabase y la sesión del usuario (RLS); las acciones que lo requieren pasan por la API | §8 |
 | D38 | **Edición de usuarios** (27/10/2026): nombre, apellidos, teléfono, rol dentro del mismo tipo (plataforma, Partner o cliente) y asignaciones. El email y el Partner no cambian; para otro tipo de usuario, baja y alta nueva. Sobre uno mismo, solo los datos personales | §5 |
 | D39 | **Alta sin contraseña** (27/10/2026): quien da de alta solo indica email, nombre, rol y ámbito. La cuenta se crea con una contraseña aleatoria que nadie ve, el usuario recibe un **email de bienvenida** y elige su contraseña con «¿Primera vez o ha olvidado la contraseña?». El antiguo «restablecer contraseña» pasa a ser **«Anular contraseña»** (para contraseñas comprometidas). Sustituye a la contraseña inicial de D28 | §5 |
+| D40 | **Motor de cálculo en la base de datos** (27/10/2026): funciones SQL ejecutadas por pg_cron cada 15 minutos (no por la API). Solo calcula por edificio; Cliente, Partner y Plataforma suman los resúmenes de sus edificios al consultar. Intervalos de 15 min; contadores repartidos en el tiempo; gas en m³ → kWh con FACTOR_CONVERSION_GAS (11,70 kWh/m³) | §8 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -227,6 +228,17 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - Las asignaciones que se quitan se desactivan con fecha de fin (queda el histórico); las nuevas se añaden.
 - `private.tipo_rol()`: PLATAFORMA, PARTNER o CLIENTE.
 - La API (0.7) añade además el alta sin contraseña con email de bienvenida (variable `WEB_URL`) y `anular-contrasena` (D39). La base de datos no cambia para eso: el usuario nuevo queda con `debe_cambiar_contrasena` hasta que elige su contraseña con el código.
+
+## Migración 032 · Motor de cálculo (27/10/2026)
+
+- **Cola incremental:** un trigger de sentencia en `lecturas` anota en `motor_pendiente`, por edificio, el instante más antiguo recibido (también datos atrasados e importaciones). Cambiar las fuentes de una magnitud o el uso de un submedidor anota el recálculo de todo su histórico. Los `recalculos_pendientes` pasan a esta cola.
+- **`motor_calcular(edificio, desde, hasta)`:** serie de 15 min por sensor según su tratamiento (DELTA/CONTAJE: diferencia entre lecturas repartida en el tiempo; PROMEDIO, MAXIMO, MINIMO, SUMA), conversión de unidades, magnitudes = suma de fuentes (papel FUENTE o RESTA, también de otras magnitudes), `valores_magnitud`, `resumenes_diarios` del día local y `resumenes_diarios_usos` de los submedidores.
+- **Calidad:** huecos de más de 1 hora → ESTIMADA; de más de 7 días, no se reparten; si el contador baja, ese tramo se descarta. `completo` = todos los intervalos del día (96, 92 o 100) y ninguno estimado.
+- **No pisa** resúmenes importados (`origen` IMPORTACION_*).
+- **Sustitución de sensores:** `sensores.id_sensor_anterior` (lo rellena `sustituir_sensor`); el motor suma el histórico del sensor antiguo sin mezclar contadores.
+- **Ejecución:** `call motor_ejecutar()` (pg_cron `motor_15min`, minutos 5, 20, 35 y 50): tramos de 7 días, confirma cada tramo, máximo 240 s, sin solaparse. `estado_motor(edificio)` para la interfaz.
+- Parámetro `FACTOR_CONVERSION_GAS` en `parametros_saas`. Si se cambia, hay que pedir un recálculo del periodo (insertar en `recalculos_pendientes`).
+- Demo: `docs/demo_motor.sql` configura las magnitudes del edificio DEMO-OFICINAS.
 
 ## Pendientes funcionales que debe cerrar el comprador
 

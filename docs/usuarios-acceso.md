@@ -35,7 +35,7 @@ Las mismas reglas se aplican para restablecer la contraseña de otro usuario, da
 ## 2 bis. Edición de usuarios (D38)
 
 - Se cambian nombre, apellidos, teléfono, rol y ámbito (clientes, alcance y edificios), con las mismas reglas que el alta.
-- El rol solo cambia dentro del mismo tipo: Partner (administrador ↔ técnico) o cliente (usuario ↔ avanzado ↔ solo lectura). Para pasar de un tipo a otro, se da de baja y se crea un usuario nuevo.
+- El rol solo cambia dentro del mismo tipo: Partner (administrador ↔ técnico) o cliente (usuario ↔ avanzado ↔ solo lectura). Para pasar de un tipo a otro, se da de baja y se crea un usuario nuevo **con otro email** (el email es único aunque el usuario esté de baja).
 - El email no se cambia (es la cuenta de acceso), ni el Partner de un usuario de Partner.
 - Sobre uno mismo solo se cambian los datos personales. Los usuarios de cliente consultan su perfil en **Mi cuenta** y piden los cambios a su administrador.
 - Un usuario dado de baja se reactiva antes de editarlo.

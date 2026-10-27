@@ -63,7 +63,7 @@ Compruebe en el *SQL Editor*:
 ```sql
 select * from public.verificar_rls();          -- debe devolver 0 filas
 select public.mantenimiento_datos();           -- crea particiones; devuelve un resumen
-select jobname, schedule from cron.job;        -- debe aparecer 'mantenimiento_datos'
+select jobname, schedule from cron.job;        -- deben aparecer 'mantenimiento_datos' y 'motor_15min'
 ```
 
 Si `cron.job` no muestra la tarea, active pg_cron (paso 2.3) y vuelva a ejecutar el bloque final de `018_retencion_mantenimiento.sql` en el SQL Editor.
@@ -111,7 +111,7 @@ El frontend solo necesita `SUPABASE_URL`, la clave `anon`/*publishable* y la URL
 - [ ] El registro público está desactivado. Prueba: intentar registrarse desde la pantalla de login debe fallar.
 - [ ] El primer administrador inicia sesión y crea un Partner de prueba.
 - [ ] Un usuario del Partner de prueba solo ve los clientes y edificios de ese Partner.
-- [ ] La tarea `mantenimiento_datos` aparece en `cron.job`.
+- [ ] Las tareas `mantenimiento_datos` y `motor_15min` aparecen en `cron.job`, y `motor_15min` termina bien en `cron.job_run_details`.
 - [ ] Se sube un GLB de prueba: primero el registro en `modelos_3d` y después el archivo en el bucket `modelos-3d`.
 - [ ] Las copias de seguridad están activas (*Database > Backups*).
 - [ ] `npx supabase test db` pasa en local o en staging.

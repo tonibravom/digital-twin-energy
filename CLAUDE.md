@@ -43,7 +43,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 6. Usuarios, roles y asignaciones solo se escriben desde la API (`service_role`), nunca desde el navegador. Toda comprobación de acceso pasa por `private.usuario_actual()`, que exige contraseña cambiada y, si aplica, el código por email de la sesión.
 7. **Toda lectura entra por `public.procesar_lecturas()`** (o `procesar_lecturas_token`; los históricos, por `procesar_lote_lecturas` o `procesar_lote_token`). Ningún conector inserta directamente en `lecturas`. Protocolos nuevos = fila en `tipos_conexion` con sus esquemas + conector en la API; nunca tablas por protocolo. Ver `docs/conectores.md`.
 8. **Energía consumida** = electricidad importada + gas + renovable consumida (FV y eólica − exportada + térmicas). Emisiones: solo importada y gas. Misma definición en KPIs, HOY y Sankey.
-9. Los KPIs de los dashboards salen SIEMPRE de `kpis_ambito` / `kpis_lista` (sobre `resumenes_diarios`), y la página de edificio de `hoy_edificio`, `serie_magnitud`, `serie_sensor` y `sensores_estado_edificio`. Nunca se suman lecturas desde la web.
+9. El motor (032) calcula por edificio en la base de datos (`motor_calcular`, cola `motor_pendiente`, pg_cron `motor_15min`). Los KPIs de los dashboards salen SIEMPRE de `kpis_ambito` / `kpis_lista` (sobre `resumenes_diarios`), y la página de edificio de `hoy_edificio`, `serie_magnitud`, `serie_sensor` y `sensores_estado_edificio`. Nunca se suman lecturas desde la web.
 10. Tablas grandes (`lecturas`, `valores_magnitud`): políticas con `columna in (select private.xxx_accesibles())`, nunca funciones evaluadas por fila.
 
 ## Convenciones de base de datos
@@ -67,6 +67,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (339 a 27/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios)
+npx supabase test db        # pruebas pgTAP (364 a 27/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```

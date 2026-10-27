@@ -174,6 +174,6 @@ Incluye la **lista de comprobación** y el botón **"Cerrar parametrización"**.
 
 | Tema | Fase |
 |---|---|
-| Cálculo de `valores_magnitud` y `resumenes_diarios` (motor) | 5 |
+| Cálculo de `valores_magnitud` y `resumenes_diarios` (motor) | Hecho (032) |
 | Contenido de Análisis energético y predicción | Posterior |
 | Mapa de calor de recintos en el 3D (colorear un recinto por su consumo o temperatura) | Posterior; requiere identificar cada recinto dentro del GLB |

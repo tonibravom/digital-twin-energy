@@ -179,4 +179,4 @@ Lista de edificios en parametrización, con su avance: "7 de 9 requisitos" y una
 |---|---|
 | Página de edificio (HOY, 3D, históricos y gráficas) | Siguiente documento |
 | Fórmulas exactas del benchmarking avanzado (normalización por clima, ocupación, horario) | Maestro: P2 |
-| Cálculo de `resumenes_diarios` por el motor | Fase 5 |
+| Cálculo de `resumenes_diarios` por el motor | Hecho (032) |
