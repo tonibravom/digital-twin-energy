@@ -92,6 +92,7 @@ Variables de entorno de la API (nunca en el código ni en el repositorio):
 | `SUPABASE_SERVICE_ROLE_KEY` | clave `service_role` / *secret* | *Project Settings > API Keys*. **Solo en el backend** |
 | `SUPABASE_ANON_KEY` | clave `anon` / *publishable* | *Project Settings > API Keys* |
 | `ORIGENES_CORS` | URL del frontend | Para CORS |
+| `WEB_URL` | URL del frontend | Enlace del email de bienvenida a los usuarios nuevos |
 | `EMAIL_PROVEEDOR` | `brevo` o `smtp` | Envío de los códigos de doble factor (ver README de la API) |
 | `EMAIL_REMITENTE` | dirección verificada en el proveedor | Proveedor de email |
 | `BREVO_API_KEY` o `SMTP_*` | clave del proveedor | Proveedor de email. **Solo en el backend** |

@@ -4,7 +4,13 @@ Cómo se dan de alta los usuarios y cómo entran en la plataforma. Acordado el 2
 
 ## 1. Quién da de alta a quién
 
-No hay registro público ni invitaciones por email: los usuarios los crea alguien con permiso, con **email y contraseña inicial**, y se la comunica al usuario.
+No hay registro público: los usuarios los crea alguien con permiso, indicando **email, nombre, rol y ámbito**. No se pone contraseña (D39):
+
+1. La plataforma crea la cuenta con una contraseña aleatoria que nadie conoce.
+2. El usuario recibe un **email de bienvenida** con la dirección de la plataforma.
+3. Entra, pulsa **«¿Primera vez o ha olvidado la contraseña?»**, recibe un código y elige su contraseña (apartado 3 bis).
+
+Así nadie más conoce su contraseña y no hay que comunicársela. Si el email de bienvenida no llega, quien le dio de alta ve las instrucciones en pantalla para dárselas.
 
 | Quién da de alta | Puede crear |
 |---|---|
@@ -22,8 +28,17 @@ Las mismas reglas se aplican para restablecer la contraseña de otro usuario, da
 ## 2. Contraseñas
 
 - Entre 10 y 72 caracteres, con letras y números.
-- La **contraseña inicial** solo sirve para la primera entrada: el usuario debe cambiarla. Lo mismo ocurre cuando un administrador se la restablece.
-- Para cambiarla, el usuario indica la actual y la nueva, que debe ser distinta.
+- La elige siempre el propio usuario: en la primera entrada y cuando la olvida, con el código por email (apartado 3 bis).
+- Desde **Mi cuenta** la puede cambiar indicando la actual y la nueva, que debe ser distinta.
+- **Anular contraseña** (administradores y Partners, sobre los usuarios que gestionan): si se sospecha que alguien la conoce. Deja de valer al momento, la base de datos deja de mostrarle datos aunque tenga una sesión abierta, y el usuario elige otra con el código.
+
+## 2 bis. Edición de usuarios (D38)
+
+- Se cambian nombre, apellidos, teléfono, rol y ámbito (clientes, alcance y edificios), con las mismas reglas que el alta.
+- El rol solo cambia dentro del mismo tipo: Partner (administrador ↔ técnico) o cliente (usuario ↔ avanzado ↔ solo lectura). Para pasar de un tipo a otro, se da de baja y se crea un usuario nuevo.
+- El email no se cambia (es la cuenta de acceso), ni el Partner de un usuario de Partner.
+- Sobre uno mismo solo se cambian los datos personales. Los usuarios de cliente consultan su perfil en **Mi cuenta** y piden los cambios a su administrador.
+- Un usuario dado de baja se reactiva antes de editarlo.
 
 ## 3. Doble factor por email
 
@@ -60,8 +75,9 @@ Mientras falte el paso 2 o el 3, **la base de datos no le muestra ningún dato**
 | `POST /v1/mi-cuenta/contrasena` | Cambia la propia contraseña |
 | `PUT /v1/mi-cuenta/doble-factor` | Activa o desactiva el doble factor voluntario |
 | `POST /v1/recuperacion/solicitar` y `/confirmar` | Recuperación de contraseña con código (sin sesión) |
-| `POST /v1/usuarios` | Alta con contraseña inicial |
-| `POST /v1/usuarios/{id}/contrasena` | Restablece la contraseña de otro usuario |
+| `POST /v1/usuarios` | Alta sin contraseña; envía el email de bienvenida |
+| `PUT /v1/usuarios/{id}` | Edita datos, rol y ámbito |
+| `POST /v1/usuarios/{id}/anular-contrasena` | Anula la contraseña de otro usuario |
 | `POST /v1/usuarios/{id}/baja` y `/reactivar` | Baja y reactivación, que también bloquean o desbloquean la cuenta en Supabase Auth |
 
 Los listados de usuarios los lee el frontend directamente de la base de datos: RLS solo muestra los que cada uno puede ver.

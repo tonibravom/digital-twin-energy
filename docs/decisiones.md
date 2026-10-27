@@ -37,7 +37,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D25 | **Solo el Partner** (y el administrador) importa históricos: permiso `IMPORTAR_HISTORICOS`. El cliente, ni siquiera el avanzado, no importa | §5 |
 | D26 | Toda importación pasa antes por una **simulación** que muestra qué se guardaría, qué se rechazaría y mínimos, máximos y medias por sensor | §15 |
 | D27 | **Altas de usuarios sin invitación:** el administrador de la plataforma y el Partner (administrador **y técnico**) crean usuarios con email y **contraseña inicial**. El técnico no puede crear administradores del Partner | §5 |
-| D28 | La contraseña inicial se **cambia obligatoriamente** en la primera entrada (mínimo 10 caracteres, letras y números) | §5 |
+| D28 | ~~La contraseña inicial se cambia obligatoriamente~~ (sustituida por D39; se mantiene el mínimo de 10 caracteres, letras y números) | §5 |
 | D29 | **Doble factor por email:** código de 6 cifras, válido 10 minutos, 5 intentos y máximo 5 códigos cada 15 minutos. Se pide en cada sesión nueva | §5 |
 | D30 | Doble factor **obligatorio** para el administrador de la plataforma y los administradores de Partner (`roles.requiere_doble_factor`, configurable) y **voluntario** para el resto | §5 |
 | D31 | Conector **Sentilo** (consulta cada 15 min y recuperación de históricos) y **LoRaWAN** por webhook del servidor de red (The Things Stack y ChirpStack), con la carga decodificada en origen | §7 |
@@ -47,6 +47,8 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D35 | El doble factor se mantiene **solo por email** (27/10/2026). Se valoró la app de códigos TOTP (gratuita en Supabase): queda como mejora futura; la base de datos ya acepta `aal2` | §5 |
 | D36 | **Recuperación de contraseña con código por email** (27/10/2026): "¿Has olvidado la contraseña?" envía un código de 6 cifras y con él el usuario elige una contraseña nueva. La respuesta es la misma exista o no el email | §5 |
 | D37 | **Frontend en Vue 3 + Vite** (repositorio `digital-twin-energy-web`), sitio estático en Render. Lee los datos con la clave pública de Supabase y la sesión del usuario (RLS); las acciones que lo requieren pasan por la API | §8 |
+| D38 | **Edición de usuarios** (27/10/2026): nombre, apellidos, teléfono, rol dentro del mismo tipo (plataforma, Partner o cliente) y asignaciones. El email y el Partner no cambian; para otro tipo de usuario, baja y alta nueva. Sobre uno mismo, solo los datos personales | §5 |
+| D39 | **Alta sin contraseña** (27/10/2026): quien da de alta solo indica email, nombre, rol y ámbito. La cuenta se crea con una contraseña aleatoria que nadie ve, el usuario recibe un **email de bienvenida** y elige su contraseña con «¿Primera vez o ha olvidado la contraseña?». El antiguo «restablecer contraseña» pasa a ser **«Anular contraseña»** (para contraseñas comprometidas). Sustituye a la contraseña inicial de D28 | §5 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -217,6 +219,14 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - `usar_codigo_recuperacion(email, código)`: `OK` (marca el código como usado y quita la obligación de cambiar la contraseña, porque la elige el propio usuario), `INCORRECTO` con los intentos restantes, `BLOQUEADO` o `NO_VALIDO`.
 - La API añade un límite por IP (10 peticiones cada 15 minutos) y cambia la contraseña en Supabase Auth.
 - Guía: `docs/usuarios-acceso.md`, apartado 3 bis.
+
+## Migración 031 · Edición de usuarios (27/10/2026)
+
+- `modificar_usuario(creador, usuario, nombre, apellidos, teléfono, rol, alcance, clientes, edificios)`, solo API. `rol` o `alcance` a null = sin cambios.
+- Mismas reglas que el alta (`comprobar_alta_usuario`) y la gestión (`puede_gestionar_usuario`), con el permiso MODIFICAR_USUARIO. Un usuario de baja no se edita sin reactivarlo.
+- Las asignaciones que se quitan se desactivan con fecha de fin (queda el histórico); las nuevas se añaden.
+- `private.tipo_rol()`: PLATAFORMA, PARTNER o CLIENTE.
+- La API (0.7) añade además el alta sin contraseña con email de bienvenida (variable `WEB_URL`) y `anular-contrasena` (D39). La base de datos no cambia para eso: el usuario nuevo queda con `debe_cambiar_contrasena` hasta que elige su contraseña con el código.
 
 ## Pendientes funcionales que debe cerrar el comprador
 
