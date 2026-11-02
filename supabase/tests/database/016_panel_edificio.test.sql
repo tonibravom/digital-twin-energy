@@ -1,0 +1,109 @@
+-- =========================================================
+-- PRUEBAS DEL PANEL DEL EDIFICIO (migración 034)
+-- Ejecutar con:  npx supabase test db
+-- Edificio en Europe/Madrid, confort 25 °C, invierno 01/11–31/03,
+-- verano 01/06–30/09.
+-- =========================================================
+begin;
+set search_path = public, extensions;
+
+select plan(20);
+
+insert into proveedores (id, codigo, nombre) values ('fc000000-0000-0000-0000-00000000000a', 'AP', 'Partner panel');
+insert into clientes (id, codigo, nombre) values ('fc100000-0000-0000-0000-000000000001', 'AC', 'Cliente panel');
+insert into edificios (id, id_cliente, codigo, nombre, zona_horaria) values
+  ('fc200000-0000-0000-0000-000000000001', 'fc100000-0000-0000-0000-000000000001', 'AE', 'Edificio panel', 'Europe/Madrid');
+insert into plantas (id, id_edificio, codigo, nombre, nivel) values
+  ('fc300000-0000-0000-0000-000000000001', 'fc200000-0000-0000-0000-000000000001', 'P1', 'Planta 1', 1),
+  ('fc300000-0000-0000-0000-000000000000', 'fc200000-0000-0000-0000-000000000001', 'P0', 'Planta baja', 0);
+insert into recintos (id, id_planta, codigo, nombre) values
+  ('fc400000-0000-0000-0000-000000000001', 'fc300000-0000-0000-0000-000000000001', 'OF', 'Oficina'),
+  ('fc400000-0000-0000-0000-000000000002', 'fc300000-0000-0000-0000-000000000000', 'VE', 'Vestíbulo');
+insert into conexiones (id, id_edificio, id_tipo_conexion, codigo, nombre)
+select 'fc700000-0000-0000-0000-000000000001', 'fc200000-0000-0000-0000-000000000001', id, 'HTTP', 'Gateway'
+from tipos_conexion where codigo = 'ENVIO_HTTP';
+insert into sensores (id, id_conexion, id_recinto, id_familia, id_naturaleza, id_tratamiento, codigo, nombre, unidad, direccion)
+select x.id::uuid, 'fc700000-0000-0000-0000-000000000001', x.rec::uuid, f.id, n.id, t.id, x.cod, x.cod, x.uni,
+       jsonb_build_object('clave', x.cod)
+from (values
+  ('fc800000-0000-0000-0000-000000000001', 'fc400000-0000-0000-0000-000000000001', 'T1', 'TEMPERATURA', '°C'),
+  ('fc800000-0000-0000-0000-000000000002', 'fc400000-0000-0000-0000-000000000001', 'T2', 'TEMPERATURA', '°C'),
+  ('fc800000-0000-0000-0000-000000000003', 'fc400000-0000-0000-0000-000000000001', 'H1', 'HUMEDAD', '%'),
+  ('fc800000-0000-0000-0000-000000000004', 'fc400000-0000-0000-0000-000000000001', 'C1', 'CO2', 'ppm'),
+  ('fc800000-0000-0000-0000-000000000005', 'fc400000-0000-0000-0000-000000000002', 'T3', 'TEMPERATURA', '°C')
+) x(id, rec, cod, fam, uni)
+join familias_sensor f on f.codigo = x.fam
+join naturalezas_sensor n on n.codigo = 'INSTANTANEA'
+join tratamientos_sensor t on t.codigo = 'PROMEDIO';
+insert into estado_comunicacion (id_sensor, estado, ultima_lectura, ultimo_valor, fecha_cambio_estado, umbral_minutos) values
+  ('fc800000-0000-0000-0000-000000000001', 'COMUNICANDO', now(), 22, now(), 30),
+  ('fc800000-0000-0000-0000-000000000002', 'COMUNICANDO', now(), 23, now(), 30),
+  ('fc800000-0000-0000-0000-000000000003', 'COMUNICANDO', now(), 75, now(), 30),
+  ('fc800000-0000-0000-0000-000000000004', 'COMUNICANDO', now(), 850, now(), 30),
+  ('fc800000-0000-0000-0000-000000000005', 'SIN_COMUNICACION', now() - interval '3 hours', 18.5, now(), 30);
+
+-- =========================================================
+-- 1. Temporadas y colores
+-- =========================================================
+select is(temporada_edificio('fc200000-0000-0000-0000-000000000001', date '2026-12-15'), 'INVIERNO', 'Invierno que cruza el año (diciembre)');
+select is(temporada_edificio('fc200000-0000-0000-0000-000000000001', date '2027-02-01'), 'INVIERNO', 'Invierno que cruza el año (febrero)');
+select is(temporada_edificio('fc200000-0000-0000-0000-000000000001', date '2026-07-20'), 'VERANO', 'Verano');
+select is(temporada_edificio('fc200000-0000-0000-0000-000000000001', date '2026-10-15'), null, 'Entre temporadas no hay KPI de temperatura');
+
+select is(estado_temperatura(19, 'INVIERNO', 25) || estado_temperatura(22, 'INVIERNO', 25) || estado_temperatura(25, 'INVIERNO', 25)
+          || estado_temperatura(25.1, 'INVIERNO', 25),
+  'VERDENARANJANARANJAROJO', 'Invierno: ≤19 verde, hasta el confort naranja, por encima rojo');
+select is(estado_temperatura(27, 'VERANO', 25) || estado_temperatura(26, 'VERANO', 25) || estado_temperatura(25, 'VERANO', 25)
+          || estado_temperatura(24.9, 'VERANO', 25),
+  'VERDENARANJANARANJAROJO', 'Verano: ≥27 verde, desde el confort naranja, por debajo rojo');
+select is(estado_temperatura(22, null, 25), null, 'Fuera de temporada la temperatura no tiene color');
+select is(estado_humedad(30) || estado_humedad(70) || estado_humedad(29) || estado_humedad(71), 'VERDEVERDEROJOROJO',
+  'Humedad: 30–70 % verde, fuera rojo');
+
+select throws_ok($$ update edificios set temperatura_confort = 19 where id = 'fc200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'El confort no puede ser 19 °C o menos');
+select throws_ok($$ update edificios set temperatura_confort = 27 where id = 'fc200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'El confort no puede ser 27 °C o más');
+select throws_ok($$ update edificios set invierno_desde = '13-01' where id = 'fc200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'Las fechas de temporada deben ser MM-DD válidas');
+
+-- =========================================================
+-- 2. Ambiente por recinto
+-- =========================================================
+select is((select jsonb_agg(r->>'recinto') from jsonb_array_elements(ambiente_edificio('fc200000-0000-0000-0000-000000000001')->'recintos') r),
+  '["Vestíbulo", "Oficina"]'::jsonb, 'Recintos ordenados de la planta más baja a la más alta');
+select is((ambiente_edificio('fc200000-0000-0000-0000-000000000001')->'recintos'->1->'temperatura'->>'valor')::numeric,
+  22.5, 'Con dos sondas en el recinto se muestra la media');
+select is(ambiente_edificio('fc200000-0000-0000-0000-000000000001')->'recintos'->1->'humedad'->>'estado',
+  'ROJO', 'Humedad del 75 %: rojo');
+select is(ambiente_edificio('fc200000-0000-0000-0000-000000000001')->'recintos'->1->'co2'->>'valor',
+  '850', 'El CO₂ se muestra sin color');
+select is(ambiente_edificio('fc200000-0000-0000-0000-000000000001')->'recintos'->0->'humedad',
+  'null'::jsonb, 'Un recinto sin sonda de humedad no la muestra');
+
+-- =========================================================
+-- 3. Alarmas: sensores sin comunicación y alarmas activas
+-- =========================================================
+insert into incidencias_comunicacion (id_sensor, fecha_inicio) values ('fc800000-0000-0000-0000-000000000005', now() - interval '2 hours');
+insert into reglas_alarma (id, id_edificio, id_sensor, codigo, nombre, condicion, umbral, id_nivel_alarma)
+select 'fc900000-0000-0000-0000-000000000001', 'fc200000-0000-0000-0000-000000000001', 'fc800000-0000-0000-0000-000000000004',
+       'CO2_ALTO', 'CO₂ alto en la oficina', 'MAYOR_QUE', 800, n.id
+from niveles_alarma n where n.codigo = 'IMPORTANTE';
+insert into eventos_alarma (id_regla_alarma, id_sensor, valor_detectado, mensaje)
+values ('fc900000-0000-0000-0000-000000000001', 'fc800000-0000-0000-0000-000000000004', 850, 'CO₂ 850 ppm');
+
+select is((select jsonb_agg(a->>'tipo') from jsonb_array_elements(alarmas_edificio('fc200000-0000-0000-0000-000000000001')) a),
+  '["ALARMA", "COMUNICACION"]'::jsonb, 'Alarmas ordenadas por importancia: primero la alarma, después la falta de comunicación');
+select is(alarmas_edificio('fc200000-0000-0000-0000-000000000001')->1->>'recinto', 'Vestíbulo',
+  'La falta de comunicación indica sensor y recinto');
+
+-- =========================================================
+-- 4. Fuentes de hoy y agrupación semanal
+-- =========================================================
+select is(fuentes_hoy_edificio('fc200000-0000-0000-0000-000000000001')->'fuentes', '[]'::jsonb,
+  'Sin magnitudes configuradas no se muestran fuentes');
+select is((select count(*)::integer from serie_sensor('fc800000-0000-0000-0000-000000000001',
+            now() - interval '30 days', now(), 'semana')), 0, 'Las series admiten la agrupación por semana');
+
+select * from finish();
+rollback;

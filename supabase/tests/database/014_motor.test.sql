@@ -241,9 +241,9 @@ select is((select count(*)::integer from resumenes_diarios where id_edificio = '
 insert into recalculos_pendientes (id_edificio, desde, hasta, motivo)
 values ('fa200000-0000-0000-0000-000000000001', timestamptz '2026-10-26 00:00 Europe/Madrid', now(), 'IMPORTACION_HISTORICO');
 delete from resumenes_diarios where id_edificio = 'fa200000-0000-0000-0000-000000000001' and fecha = date '2026-10-26';
-select is((motor_procesar_siguiente()->>'terminado')::boolean, true, 'Los recálculos pedidos pasan a la cola del motor y se procesan');
+select ok(motor_procesar_siguiente() ? 'valores', 'Los recálculos pedidos pasan a la cola del motor y se procesan');
 select is((select count(*)::integer from resumenes_diarios where id_edificio = 'fa200000-0000-0000-0000-000000000001'
-             and fecha = date '2026-10-26'), 1, 'El recálculo vuelve a generar los resúmenes del periodo');
+             and fecha = date '2026-10-26'), 1, 'El recálculo vuelve a generar los resúmenes del periodo (en tramos de 7 días)');
 
 -- =========================================================
 -- 6. Permisos

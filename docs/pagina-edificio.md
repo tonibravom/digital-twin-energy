@@ -46,20 +46,38 @@ Un usuario de cliente con un solo edificio entra directamente aquí (no ve la ru
 
 Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin calendario cargado, se considera laborable de lunes a viernes.
 
-**Disposición (D41, 27/10/2026):** la pantalla se divide en dos columnas y, al bajar, la curva y el Sankey.
+**Disposición (D42, 02/11/2026).** La página se divide en tres zonas que ocupan la altura de la ventana:
 
-| Zona | Contenido |
+```
+┌───────────────┬──────────────────────────┬────────────┐
+│ Pestañas      │ 3D (si está contratado)  │            │
+│ (Hoy, Sumi-   │ o lista de sensores,     │  ALARMAS   │
+│ nistros de    │ de la planta más baja    │  (fijo)    │
+│ red, Produc-  │ a la más alta (fijo)     │            │
+│ ción renova-  ├──────────────────────────┤            │
+│ ble)          │ Gráfica (fija)           │            │
+└───────────────┴──────────────────────────┴────────────┘
+      1/3                1/3 + 1/6               1/6
+```
+
+- Solo cambia la zona izquierda al cambiar de pestaña.
+- **Gráfica:** por defecto, la energía de hoy frente al día comparable con las horas fuera de horario sombreadas. Selector de magnitud del edificio, periodo (hoy, ayer, 7 días, 30 días, 12 meses) y agrupación (15 min, hora, día, semana, mes). Al pulsar un sensor de la lista (o del 3D) se muestra su gráfica. Sustituye a la pestaña Históricos.
+- **Alarmas:** alarmas activas y sensores sin comunicación, por importancia. Sustituye a la pestaña Alarmas. El motor de alarmas (umbrales, fuera de horario…) es la siguiente fase.
+- **Ficha** y **Configuración** son botones de la cabecera.
+- En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.
+
+**Pestaña Hoy** (la zona izquierda en tres tercios):
+
+| Tercio | Contenido |
 |---|---|
-| Izquierda: **Energía total consumida** | Total del día (importada + gas + renovable consumida), su variación frente al día comparable hasta la misma hora, el desglose por fuente con su valor (electricidad de la red, gas, renovables: solo las que tenga el edificio) y las **emisiones totales**, sin separar por fuente |
-| Izquierda: **Potencia** | Último valor (kW), variación frente al día comparable a la misma hora y **factor de potencia** (en naranja si es menor de 0,90) |
-| Izquierda: **Agua** | Consumo de hoy (m³) |
-| Derecha | El **gemelo 3D** si el edificio tiene modelo; si no, la **lista de sensores** con su último valor y estado. Con 3D no se muestra la lista |
-| Debajo: **Curva de carga** | Energía cada 15 min de hoy sobre la del día comparable. Las franjas **fuera del horario** de funcionamiento aparecen sombreadas (todo el día si no es laborable) |
-| Debajo: **Diagrama Sankey** | De dónde viene la energía y a qué usos va (hoy, 7 o 30 días); lo no medido por submedidores aparece como estimado |
+| 1 | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su valor y su %; emisiones totales |
+| 2 | **Diagrama Sankey** (hoy, 7 o 30 días) |
+| 3 | **Ambiente por recinto**: temperatura, humedad y CO₂ del último valor, con los colores de D43; con scroll |
 
-El consumo fuera de horario no tiene tarjeta propia: se trata en **Alarmas y avisos**.
+**Suministros de red:** potencia (con su % a la misma hora del día comparable) y factor de potencia; electricidad, gas y agua de hoy. El resto, por diseñar.
+**Producción renovable:** generación de hoy, parte consumida, cobertura y %. El resto, por diseñar.
 
-*Soporte:* `hoy_edificio(edificio)` (023) devuelve los consumos, la curva y el horario; `potencia_edificio(edificio)` (033), la potencia, su comparación y el factor de potencia; `sankey_energia` (024), el diagrama; `kpis_ambito('EDIFICIO', id)`, el año en curso.
+*Soporte:* `hoy_edificio` (023: consumos, curva, horario), `potencia_edificio` (033), `fuentes_hoy_edificio`, `ambiente_edificio` y `alarmas_edificio` (034), `sankey_energia` (024), `serie_magnitud` y `serie_sensor` (023, con semanas desde 034).
 
 ## 3. 3D
 

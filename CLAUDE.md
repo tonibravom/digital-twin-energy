@@ -14,7 +14,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
   - `docs/instalacion.md`, `docs/dimensionamiento.md`, `docs/seguridad.md`;
   - `docs/conectores.md` y `docs/configuracion-partner.md` (especificación del asistente de alta de dispositivos);
   - `docs/pantallas.md` (navegación, plantilla de ámbito de 3 niveles, KPIs, listas y permisos);
-  - `docs/pagina-edificio.md` (pestañas HOY, 3D, Históricos, Alarmas, Ficha, Análisis y Configuración);
+  - `docs/pagina-edificio.md` (panel en tres zonas: pestañas, 3D o sensores con gráfica, y alarmas);
   - `docs/configuracion-edificio.md` (alta guiada, edición, sustituciones, GLB, Excel, calendario);
   - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo);
   - `docs/usuarios-acceso.md` (altas, contraseña inicial, doble factor y recuperación de contraseña por email).
@@ -43,7 +43,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 6. Usuarios, roles y asignaciones solo se escriben desde la API (`service_role`), nunca desde el navegador. Toda comprobación de acceso pasa por `private.usuario_actual()`, que exige contraseña cambiada y, si aplica, el código por email de la sesión.
 7. **Toda lectura entra por `public.procesar_lecturas()`** (o `procesar_lecturas_token`; los históricos, por `procesar_lote_lecturas` o `procesar_lote_token`). Ningún conector inserta directamente en `lecturas`. Protocolos nuevos = fila en `tipos_conexion` con sus esquemas + conector en la API; nunca tablas por protocolo. Ver `docs/conectores.md`.
 8. **Energía consumida** = electricidad importada + gas + renovable consumida (FV y eólica − exportada + térmicas). Emisiones: solo importada y gas. Misma definición en KPIs, HOY y Sankey.
-9. El motor (032) calcula por edificio en la base de datos (`motor_calcular`, cola `motor_pendiente`, pg_cron `motor_15min`). Los KPIs de los dashboards salen SIEMPRE de `kpis_ambito` / `kpis_lista` (sobre `resumenes_diarios`), y la página de edificio de `hoy_edificio`, `potencia_edificio`, `sankey_energia`, `serie_magnitud`, `serie_sensor` y `sensores_estado_edificio`. Nunca se suman lecturas desde la web.
+9. El motor (032) calcula por edificio en la base de datos (`motor_calcular`, cola `motor_pendiente`, pg_cron `motor_15min`). Los KPIs de los dashboards salen SIEMPRE de `kpis_ambito` / `kpis_lista` (sobre `resumenes_diarios`), y la página de edificio de `hoy_edificio`, `potencia_edificio`, `fuentes_hoy_edificio`, `ambiente_edificio`, `alarmas_edificio`, `sankey_energia`, `serie_magnitud`, `serie_sensor` y `sensores_estado_edificio`. Nunca se suman lecturas desde la web.
 10. Tablas grandes (`lecturas`, `valores_magnitud`): políticas con `columna in (select private.xxx_accesibles())`, nunca funciones evaluadas por fila.
 
 ## Convenciones de base de datos
@@ -67,6 +67,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (370 a 27/10/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia)
+npx supabase test db        # pruebas pgTAP (390 a 02/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```
