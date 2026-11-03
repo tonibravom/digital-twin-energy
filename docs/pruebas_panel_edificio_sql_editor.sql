@@ -2,10 +2,10 @@
 -- Al final sale un mensaje en ROJO a propósito con el resumen;
 -- al ser un error, deshace todos los datos de prueba.
 -- =========================================================
--- PRUEBAS DEL PANEL DEL EDIFICIO (migración 034)
+-- PRUEBAS DEL PANEL DEL EDIFICIO (migraciones 034 y 036)
 -- Ejecutar con:  npx supabase test db
--- Edificio en Europe/Madrid, confort 25 °C, invierno 01/11–31/03,
--- verano 01/06–30/09.
+-- Edificio en Europe/Madrid; invierno 01/11–31/03 (eficiencia 19 °C,
+-- confort 25 °C) y verano 01/06–30/09 (eficiencia 27 °C, confort 25 °C).
 -- =========================================================
 begin;
 set search_path = public, extensions;
@@ -56,20 +56,20 @@ insert into resultados (t) select is(temporada_edificio('fc200000-0000-0000-0000
 insert into resultados (t) select is(temporada_edificio('fc200000-0000-0000-0000-000000000001', date '2026-07-20'), 'VERANO', 'Verano');
 insert into resultados (t) select is(temporada_edificio('fc200000-0000-0000-0000-000000000001', date '2026-10-15'), null, 'Entre temporadas no hay KPI de temperatura');
 
-insert into resultados (t) select is(estado_temperatura(19, 'INVIERNO', 25) || estado_temperatura(22, 'INVIERNO', 25) || estado_temperatura(25, 'INVIERNO', 25)
-          || estado_temperatura(25.1, 'INVIERNO', 25),
+insert into resultados (t) select is(estado_temperatura(19, 'INVIERNO', 19, 25) || estado_temperatura(22, 'INVIERNO', 19, 25) || estado_temperatura(25, 'INVIERNO', 19, 25)
+          || estado_temperatura(25.1, 'INVIERNO', 19, 25),
   'VERDENARANJANARANJAROJO', 'Invierno: ≤19 verde, hasta el confort naranja, por encima rojo');
-insert into resultados (t) select is(estado_temperatura(27, 'VERANO', 25) || estado_temperatura(26, 'VERANO', 25) || estado_temperatura(25, 'VERANO', 25)
-          || estado_temperatura(24.9, 'VERANO', 25),
+insert into resultados (t) select is(estado_temperatura(27, 'VERANO', 27, 25) || estado_temperatura(26, 'VERANO', 27, 25) || estado_temperatura(25, 'VERANO', 27, 25)
+          || estado_temperatura(24.9, 'VERANO', 27, 25),
   'VERDENARANJANARANJAROJO', 'Verano: ≥27 verde, desde el confort naranja, por debajo rojo');
-insert into resultados (t) select is(estado_temperatura(22, null, 25), null, 'Fuera de temporada la temperatura no tiene color');
+insert into resultados (t) select is(estado_temperatura(22, null, 19, 25), null, 'Fuera de temporada la temperatura no tiene color');
 insert into resultados (t) select is(estado_humedad(30) || estado_humedad(70) || estado_humedad(29) || estado_humedad(71), 'VERDEVERDEROJOROJO',
   'Humedad: 30–70 % verde, fuera rojo');
 
-insert into resultados (t) select throws_ok($$ update edificios set temperatura_confort = 19 where id = 'fc200000-0000-0000-0000-000000000001' $$,
-  '23514', null, 'El confort no puede ser 19 °C o menos');
-insert into resultados (t) select throws_ok($$ update edificios set temperatura_confort = 27 where id = 'fc200000-0000-0000-0000-000000000001' $$,
-  '23514', null, 'El confort no puede ser 27 °C o más');
+insert into resultados (t) select throws_ok($$ update edificios set temp_confort_invierno = 19 where id = 'fc200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'En invierno el confort debe ser mayor que la eficiencia');
+insert into resultados (t) select throws_ok($$ update edificios set temp_confort_verano = 27 where id = 'fc200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'En verano el confort debe ser menor que la eficiencia');
 insert into resultados (t) select throws_ok($$ update edificios set invierno_desde = '13-01' where id = 'fc200000-0000-0000-0000-000000000001' $$,
   '23514', null, 'Las fechas de temporada deben ser MM-DD válidas');
 

@@ -54,6 +54,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D42 | **Página de edificio en tres zonas** (02/11/2026), sustituye a la disposición de D41: en horizontal 1/3 · 1/2 · 1/6. Izquierda: pestañas **Hoy**, **Suministros de red** y **Producción renovable** (lo único que cambia). Centro: 3D (si está contratado) o lista de sensores de la planta más baja a la más alta (2/3 de la altura) y la gráfica (1/3) con selector de magnitud, periodo y agrupación (15 min, hora, día, semana, mes); al pulsar un sensor se ve su gráfica. Derecha: alarmas. Sin pestañas de 3D ni de alarmas; Históricos va en la gráfica; Ficha y Configuración, botones de la cabecera. Hoy: KPI de energía (con % por fuente), Sankey y ambiente por recinto. Potencia, factor de potencia y agua pasan a Suministros de red | §9 |
 | D43 | **Ambiente por recinto** (02/11/2026): temperatura de confort por edificio (19 < confort < 27, por defecto 25 °C) y temporadas por fechas (por defecto invierno 01/11–31/03, verano 01/06–30/09). Invierno: ≤19 verde, hasta el confort naranja, más rojo. Verano: ≥27 verde, desde el confort naranja, menos rojo. Fuera de temporada, sin color. Humedad todo el año: 30–70 % verde, fuera rojo. CO₂ sin color de momento. Valor: el último de cada recinto | §9 |
 | D44 | **Cabecera sin menú lateral** (02/11/2026): logotipo a la izquierda; campana de alarmas (todas las de los edificios del usuario) y usuario (Mi cuenta, Usuarios, Cerrar sesión) a la derecha, en todas las páginas. En el edificio, nueva pestaña **Condiciones ambientales** con el ambiente por recinto; **Hoy** queda en dos mitades: energía y Sankey | §9 |
+| D45 | **Hoy en tres bloques y temperaturas configurables** (03/11/2026), sustituye en parte a D43 y D44. La pestaña Hoy es un desplazamiento vertical con tres bloques del mismo alto: **energía** (cada fuente con su energía, su **aporte al total** y su % frente al día comparable; **emisiones** totales y separadas en electricidad de la red y gas, las renovables no emiten), **Sankey** y **ambiente por recinto**. Se quita la pestaña Condiciones ambientales. Banda de alarmas más estrecha y gráfica más alta. Por edificio y temporada se configuran la **temperatura de eficiencia** (en España la del RITE: 19 °C en invierno, 27 °C en verano) y la **de confort** (25 °C por defecto), para poder usar la plataforma en países con otros límites. Invierno: ≤ eficiencia verde, ≤ confort naranja, más rojo (eficiencia < confort). Verano: ≥ eficiencia verde, ≥ confort naranja, menos rojo (confort < eficiencia) | §9 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -261,6 +262,13 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 ## Migración 035 · Campana de alarmas (02/11/2026)
 
 - `resumen_alarmas_usuario()`: total de alarmas activas o reconocidas y sensores sin comunicación de los edificios que ve el usuario (RLS), con el nivel más grave y la lista por edificio.
+
+## Migración 036 · Temperaturas por temporada y emisiones por fuente (03/11/2026)
+
+- `edificios`: `temp_eficiencia_invierno` (19), `temp_confort_invierno` (25), `temp_eficiencia_verano` (27) y `temp_confort_verano` (25), con comprobación de orden y rangos. Sustituyen a `temperatura_confort`, cuyo valor se copia a los dos confort.
+- `estado_temperatura(valor, temporada, eficiencia, confort)` sustituye a la versión de tres parámetros.
+- `ambiente_edificio` devuelve también `temperatura_eficiencia` y `temperatura_confort` de la temporada en curso.
+- `fuentes_hoy_edificio` añade `total_kwh`, `emisiones_kg` y, por fuente, `aporte_pct` y `emisiones_kg` (nulo en renovables).
 
 ## Pendientes funcionales que debe cerrar el comprador
 

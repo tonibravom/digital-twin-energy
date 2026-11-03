@@ -53,12 +53,12 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 │ Pestañas      │ 3D (si está contratado)  │            │
 │ (Hoy, Sumi-   │ o lista de sensores,     │  ALARMAS   │
 │ nistros de    │ de la planta más baja    │  (fijo)    │
-│ red, Produc-  │ a la más alta (fijo)     │            │
+│ red, Produc-  │ a la más alta (fijo, 3/5)│            │
 │ ción renova-  ├──────────────────────────┤            │
-│ ble, Condi-   │ Gráfica (fija)           │            │
-│ ciones amb.)  │                          │            │
+│ ble)          │ Gráfica (fija, 2/5)      │            │
+│               │                          │            │
 └───────────────┴──────────────────────────┴────────────┘
-      1/3                1/3 + 1/6               1/6
+     ≈1/3                 ≈1/2               ≈1/8
 ```
 
 - Solo cambia la zona izquierda al cambiar de pestaña.
@@ -67,14 +67,13 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **Ficha** y **Configuración** son botones de la cabecera.
 - En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.
 
-**Pestaña Hoy** (D44: la zona izquierda en dos mitades):
+**Pestaña Hoy** (D45): desplazamiento vertical con tres bloques del mismo alto. Las pestañas caben sin desplazamiento horizontal.
 
-| Mitad | Contenido |
+| Bloque | Contenido |
 |---|---|
-| Superior | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su valor y su %; emisiones totales |
-| Inferior | **Diagrama Sankey** (hoy, 7 o 30 días) |
-
-**Condiciones ambientales:** ambiente por recinto (temperatura, humedad y CO₂ del último valor, con los colores de D43), con scroll.
+| 1 | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su energía, su **aporte al total** y su % frente al día comparable; **emisiones** totales y separadas en electricidad de la red y gas (las renovables no emiten) |
+| 2 | **Diagrama Sankey** (hoy, 7 o 30 días) |
+| 3 | **Ambiente por recinto**: temperatura, humedad y CO₂ del último valor. Colores de temperatura con la **eficiencia** y el **confort** de la temporada, configurables por edificio (por defecto, invierno 19 / 25 °C y verano 27 / 25 °C). Humedad 30–70 % verde |
 **Suministros de red:** potencia (con su % a la misma hora del día comparable) y factor de potencia; electricidad, gas y agua de hoy. El resto, por diseñar.
 **Producción renovable:** generación de hoy, parte consumida, cobertura y %. El resto, por diseñar.
 
