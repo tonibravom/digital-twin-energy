@@ -92,7 +92,7 @@ insert into resultados (t) select lives_ok(
   'El Partner configura: el gas no medido va 100 % a climatización');
 insert into resultados (t) select throws_like(
   $$ insert into repartos_uso_edificio (id_edificio, tipo_energia, id_uso_energia, porcentaje)
-     select 'aa120000-0000-0000-0000-000000000001', 'GAS', id, 10 from usos_energia where codigo = 'OTROS' $$,
+     select 'aa120000-0000-0000-0000-000000000001', 'GAS', id, 10 from usos_energia where codigo = 'OTROS_SIN_DESGLOSE' $$,
   '%superan el 100%', 'Los porcentajes de reparto no pueden superar el 100 %');
 
 -- =========================================================

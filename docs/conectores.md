@@ -202,7 +202,7 @@ Supabase llama a la API cada 15 minutos (pg_cron + pg_net, migración 028), así
 Con `SIMULADOR_ACTIVO=true`, la API incluye:
 - **API REST simulada** en `https://<api>/simulador/api/medidas?desde=…&hasta=…` (cabecera `X-API-Key` = `SIMULADOR_API_KEY`). Puntos: `CONT-GENERAL` (kWh acumulados), `POT-GENERAL` (kW), `FV-PROD` (kWh FV acumulados), `TEMP-EXT` (°C) y `GAS-CONT` (m³ acumulados). Datos realistas de un edificio de oficinas, también del pasado (sirve para probar la recuperación de históricos).
 - **Sentilo simulado** en `https://<api>/simulador/sentilo` con los mismos puntos (token = `SIMULADOR_SENTILO_TOKEN`), para probar ese tipo de conexión.
-- El script `docs/demo_simuladores.sql` crea un edificio de demostración conectado a la API REST y al LoRaWAN simulados.
+- El script `docs/demo_torre.sql` crea la torre de oficinas de demostración conectada a la API REST y al LoRaWAN simulados (y `docs/demo_limpiar.sql` borra un edificio de demostración).
 - **Servidor LoRaWAN simulado:** en cada ciclo envía, con formato The Things Stack, un mensaje de cada dispositivo a la conexión cuyo token esté en `SIMULADOR_LORAWAN_TOKEN`:
 
 | DevEUI | Dispositivo | Campos |

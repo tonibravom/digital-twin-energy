@@ -67,12 +67,12 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **Ficha** y **Configuración** son botones de la cabecera.
 - En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.
 
-**Pestaña Hoy** (D45): desplazamiento vertical con tres bloques del mismo alto. Las pestañas caben sin desplazamiento horizontal.
+**Pestaña Hoy** (D45, D46): desplazamiento vertical con tres bloques; la energía y el ambiente ocupan lo que necesitan y el Sankey tiene un alto fijo. Las pestañas caben sin desplazamiento horizontal.
 
 | Bloque | Contenido |
 |---|---|
 | 1 | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su energía, su **aporte al total** y su % frente al día comparable; **emisiones** totales y separadas en electricidad de la red y gas (las renovables no emiten) |
-| 2 | **Diagrama Sankey** (hoy, 7 o 30 días) |
+| 2 | **Diagrama Sankey** (hoy, 7 o 30 días), compacto, con el botón **Ampliar** (detalle por uso y cuadro) |
 | 3 | **Ambiente por recinto**: temperatura, humedad y CO₂ del último valor. Colores de temperatura con la **eficiencia** y el **confort** de la temporada, configurables por edificio (por defecto, invierno 19 / 25 °C y verano 27 / 25 °C). Humedad 30–70 % verde |
 **Suministros de red:** potencia (con su % a la misma hora del día comparable) y factor de potencia; electricidad, gas y agua de hoy. El resto, por diseñar.
 **Producción renovable:** generación de hoy, parte consumida, cobertura y %. El resto, por diseñar.
@@ -137,11 +137,13 @@ Biomasa ───────┘                           └─► Otros usos
 - Electricidad consumida = importada de la red + fotovoltaica y eólica autoconsumidas (generada − exportada).
 - Las renovables térmicas (solar térmica, geotermia, biomasa) forman el **calor renovable**, que se reparte entre usos igual que la electricidad o el gas.
 - La suma de todas las entradas menos lo exportado es la **energía consumida** del edificio, la misma cifra del KPI.
-- Cada uso recibe lo que miden los **submedidores** asignados a él. El Partner indica el uso de cada submedidor en el paso "Qué representa" del asistente.
-- Lo **no medido** (total − submedidores) se reparte con los porcentajes que configure el Partner por tipo de energía; por ejemplo, "gas no medido → 100 % climatización". Lo que no tenga reparto va a **Otros usos**.
+- Cada uso recibe lo que miden los **submedidores** asignados a él. El Partner indica, en el paso "Magnitud que representa" del asistente, si un medidor es el contador general, el total de un cuadro o un submedidor, su uso y su cuadro (D46).
+- **Otros usos de cada cuadro** = total del cuadro − sus submedidores − los cuadros que cuelgan de él (lo calcula el motor, 037).
+- Lo **no medido** (total − cuadros − medidores independientes) se reparte con los porcentajes que configure el Partner por tipo de energía; por ejemplo, "gas no medido → 100 % climatización". Lo que no tenga reparto va a **Otros usos · no medido**.
 - Los flujos estimados se dibujan con **trazo discontinuo**. Al pasar el ratón se ve "estimado" con su valor.
 - Si los submedidores suman más que el total, se muestra un aviso para revisar la asignación de usos.
-- Usos de partida: HVAC (climatización y renovación de aire), iluminación y otros usos. El catálogo `usos_energia` admite añadir más (ACS, ascensores, ofimática…) sin cambiar el código.
+- Tres grupos de usos: **HVAC** (climatización, refrigeración, calefacción, ACS, calefacción y ACS, renovación de aire), **Alumbrado** y **Otros usos** (informática, servicios comunes y el resto). El catálogo `usos_energia` admite añadir más sin cambiar el código.
+- **Columnas (D46):** fuentes → electricidad o gas → HVAC, Alumbrado y Otros usos → **detalle**: en HVAC, el uso final; en Alumbrado y Otros usos, el uso y el cuadro ("Alumbrado · Planta 1", "Otros usos · Local comercial", "Informática · Cubierta"), ordenados por planta. En la pestaña Hoy se ve compacto (sin el detalle); el botón **Ampliar** lo abre a pantalla completa con el detalle. En Cliente, Partner y Plataforma el detalle es solo por uso, sin cuadros.
 
 *Soporte (024):* `sankey_energia(nivel, id, desde, hasta)` devuelve nodos y enlaces listos para la librería de gráficos (por ejemplo, ECharts tiene Sankey integrado).
 
