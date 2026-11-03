@@ -139,7 +139,13 @@ Por ejemplo, el administrador de la plataforma, al bajar a un cliente, también 
 
 Lista de edificios en parametrización, con su avance: "7 de 9 requisitos" y una barra de progreso (`estado_parametrizacion_edificio`). Al pulsar uno se abre el asistente en el punto donde se dejó.
 
-## 9. Menú lateral
+## 9. Cabecera y menú (D44, 02/11/2026)
+
+**No hay menú lateral**: toda la anchura es para el contenido. La cabecera es una sola fila:
+- **izquierda:** logotipo y nombre de la plataforma (lleva a Inicio);
+- **derecha:** **campana** con el número de alarmas activas de los edificios del usuario (al pulsarla, la lista por edificio, que lleva a cada uno) y el **usuario**, con un desplegable: Mi cuenta, Usuarios (administradores y Partners) y Cerrar sesión.
+
+Las opciones generales que se vayan añadiendo (análisis, plantillas, parámetros, auditoría) irán en ese desplegable o como enlaces de la cabecera. Quién podrá ver cada una:
 
 | Opción | Plataforma | Partner | Cliente |
 |---|---|---|---|

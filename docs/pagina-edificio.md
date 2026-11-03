@@ -55,7 +55,8 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 │ nistros de    │ de la planta más baja    │  (fijo)    │
 │ red, Produc-  │ a la más alta (fijo)     │            │
 │ ción renova-  ├──────────────────────────┤            │
-│ ble)          │ Gráfica (fija)           │            │
+│ ble, Condi-   │ Gráfica (fija)           │            │
+│ ciones amb.)  │                          │            │
 └───────────────┴──────────────────────────┴────────────┘
       1/3                1/3 + 1/6               1/6
 ```
@@ -66,14 +67,14 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **Ficha** y **Configuración** son botones de la cabecera.
 - En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.
 
-**Pestaña Hoy** (la zona izquierda en tres tercios):
+**Pestaña Hoy** (D44: la zona izquierda en dos mitades):
 
-| Tercio | Contenido |
+| Mitad | Contenido |
 |---|---|
-| 1 | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su valor y su %; emisiones totales |
-| 2 | **Diagrama Sankey** (hoy, 7 o 30 días) |
-| 3 | **Ambiente por recinto**: temperatura, humedad y CO₂ del último valor, con los colores de D43; con scroll |
+| Superior | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su valor y su %; emisiones totales |
+| Inferior | **Diagrama Sankey** (hoy, 7 o 30 días) |
 
+**Condiciones ambientales:** ambiente por recinto (temperatura, humedad y CO₂ del último valor, con los colores de D43), con scroll.
 **Suministros de red:** potencia (con su % a la misma hora del día comparable) y factor de potencia; electricidad, gas y agua de hoy. El resto, por diseñar.
 **Producción renovable:** generación de hoy, parte consumida, cobertura y %. El resto, por diseñar.
 

@@ -53,6 +53,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D41 | **Pestaña Hoy** (27/10/2026): dos columnas (KPIs a la izquierda; 3D o, sin 3D, lista de sensores a la derecha) y debajo la curva de 15 min con el horario sombreado y el Sankey. KPI «Energía total consumida» con desglose por fuente y emisiones totales; KPI «Potencia» con factor de potencia, ambos comparados con el día comparable. Sin tarjetas de emisiones, renovable ni fuera de horario (este va a alarmas y avisos) | §9 |
 | D42 | **Página de edificio en tres zonas** (02/11/2026), sustituye a la disposición de D41: en horizontal 1/3 · 1/2 · 1/6. Izquierda: pestañas **Hoy**, **Suministros de red** y **Producción renovable** (lo único que cambia). Centro: 3D (si está contratado) o lista de sensores de la planta más baja a la más alta (2/3 de la altura) y la gráfica (1/3) con selector de magnitud, periodo y agrupación (15 min, hora, día, semana, mes); al pulsar un sensor se ve su gráfica. Derecha: alarmas. Sin pestañas de 3D ni de alarmas; Históricos va en la gráfica; Ficha y Configuración, botones de la cabecera. Hoy: KPI de energía (con % por fuente), Sankey y ambiente por recinto. Potencia, factor de potencia y agua pasan a Suministros de red | §9 |
 | D43 | **Ambiente por recinto** (02/11/2026): temperatura de confort por edificio (19 < confort < 27, por defecto 25 °C) y temporadas por fechas (por defecto invierno 01/11–31/03, verano 01/06–30/09). Invierno: ≤19 verde, hasta el confort naranja, más rojo. Verano: ≥27 verde, desde el confort naranja, menos rojo. Fuera de temporada, sin color. Humedad todo el año: 30–70 % verde, fuera rojo. CO₂ sin color de momento. Valor: el último de cada recinto | §9 |
+| D44 | **Cabecera sin menú lateral** (02/11/2026): logotipo a la izquierda; campana de alarmas (todas las de los edificios del usuario) y usuario (Mi cuenta, Usuarios, Cerrar sesión) a la derecha, en todas las páginas. En el edificio, nueva pestaña **Condiciones ambientales** con el ambiente por recinto; **Hoy** queda en dos mitades: energía y Sankey | §9 |
 | D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
@@ -256,6 +257,10 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - `fuentes_hoy_edificio`: electricidad, gas y renovable consumida de hoy con su % frente al día comparable.
 - `alarmas_edificio`: alarmas activas o reconocidas y sensores sin comunicación, por importancia.
 - `serie_magnitud` y `serie_sensor` admiten `semana`.
+
+## Migración 035 · Campana de alarmas (02/11/2026)
+
+- `resumen_alarmas_usuario()`: total de alarmas activas o reconocidas y sensores sin comunicación de los edificios que ve el usuario (RLS), con el nivel más grave y la lista por edificio.
 
 ## Pendientes funcionales que debe cerrar el comprador
 
