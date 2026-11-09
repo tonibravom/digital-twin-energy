@@ -62,7 +62,7 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 ```
 
 - Solo cambia la zona izquierda al cambiar de pestaña.
-- **Gráfica:** por defecto, la energía de hoy frente al día comparable con las horas fuera de horario sombreadas. Selector de magnitud del edificio, periodo (hoy, ayer, 7 días, 30 días, 12 meses) y agrupación (15 min, hora, día, semana, mes). Al pulsar un sensor de la lista (o del 3D) se muestra su gráfica. Sustituye a la pestaña Históricos.
+- **Gráfica (D47):** por defecto, la energía total de hoy frente al día comparable con las horas fuera de horario sombreadas. El desplegable, con buscador, ofrece todas las series de energía (KPI, usos y cuadros del Sankey), las demás magnitudes y todos los sensores. Pulsar un dato del panel (KPI, valores de ambiente, usos finales del Sankey ampliado, sensores, alarmas, pestañas) lo muestra en la gráfica y lo resalta. Energía en líneas (15 min, horas) o barras (días, semanas, meses). Selector de magnitud del edificio, periodo (hoy, ayer, 7 días, 30 días, 12 meses) y agrupación (15 min, hora, día, semana, mes). Al pulsar un sensor de la lista (o del 3D) se muestra su gráfica. Sustituye a la pestaña Históricos.
 - **Alarmas:** alarmas activas y sensores sin comunicación, por importancia. Sustituye a la pestaña Alarmas. El motor de alarmas (umbrales, fuera de horario…) es la siguiente fase.
 - **Ficha** y **Configuración** son botones de la cabecera.
 - En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.

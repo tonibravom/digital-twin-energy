@@ -64,6 +64,7 @@ begin
   delete from public.valores_magnitud where id_magnitud_edificio = any (v_me);
   delete from public.magnitudes_fuentes where id_magnitud_edificio = any (v_me) or id_sensor = any (v_sensores);
   delete from public.resumenes_diarios_usos where id_edificio = v_edif;
+  delete from public.valores_usos where id_edificio = v_edif;
   delete from public.resumenes_diarios where id_edificio = v_edif;
   delete from public.repartos_uso_edificio where id_edificio = v_edif;
   delete from public.motor_pendiente where id_edificio = v_edif;
