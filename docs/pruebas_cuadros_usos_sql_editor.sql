@@ -72,7 +72,7 @@ select pg_temp.sensor('fd800000-0000-0000-0000-000000000004', 'TLOC', 'fd400000-
 select pg_temp.sensor('fd800000-0000-0000-0000-000000000005', 'ALOC', 'fd400000-0000-0000-0000-000000000001', 'ELECTRICIDAD', 'USO', 'ILUMINACION', 'fd500000-0000-0000-0000-000000000001');
 select pg_temp.sensor('fd800000-0000-0000-0000-000000000006', 'TP1', 'fd400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'CUADRO', null, 'fd500000-0000-0000-0000-000000000002');
 select pg_temp.sensor('fd800000-0000-0000-0000-000000000007', 'AP1', 'fd400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'USO', 'ILUMINACION', 'fd500000-0000-0000-0000-000000000002');
-select pg_temp.sensor('fd800000-0000-0000-0000-000000000008', 'INF', 'fd400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'USO', 'OTROS_INFORMATICA', 'fd500000-0000-0000-0000-000000000003');
+select pg_temp.sensor('fd800000-0000-0000-0000-000000000008', 'INF', 'fd400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'USO', 'INFORMATICA', 'fd500000-0000-0000-0000-000000000003');
 select pg_temp.sensor('fd800000-0000-0000-0000-000000000009', 'GASC', 'fd400000-0000-0000-0000-000000000000', 'GAS', 'USO', 'HVAC_CALEFACCION_ACS', null);
 
 insert into magnitudes_edificio (id, id_edificio, id_magnitud, ambito)
@@ -99,8 +99,9 @@ cross join generate_series(timestamptz '2026-10-20 00:00 Europe/Madrid', timesta
 insert into resultados (t) select is((select string_agg(h.codigo, ',' order by h.orden) from usos_energia h join usos_energia p on p.id = h.id_padre where p.codigo = 'HVAC'),
   'HVAC_CLIMATIZACION,HVAC_REFRIGERACION,HVAC_CALEFACCION,HVAC_ACS,HVAC_CALEFACCION_ACS,HVAC_RENOVACION',
   'HVAC: climatización, refrigeración, calefacción, ACS, calefacción y ACS, renovación de aire');
-insert into resultados (t) select is((select string_agg(h.codigo, ',' order by h.orden) from usos_energia h join usos_energia p on p.id = h.id_padre where p.codigo = 'OTROS'),
-  'OTROS_INFORMATICA,OTROS_SERVICIOS_COMUNES,OTROS_SIN_DESGLOSE', 'Otros usos: informática, servicios comunes y resto');
+insert into resultados (t) select is((select string_agg(codigo, ',' order by orden) from usos_energia where id_padre is null),
+  'HVAC,ILUMINACION,INFORMATICA,SERVICIOS_COMUNES,OTROS',
+  'Usos principales: HVAC, alumbrado, informática, servicios comunes y otros usos (sin uso determinado, 040)');
 insert into resultados (t) select is((select nombre from usos_energia where codigo = 'ILUMINACION'), 'Alumbrado', 'El uso de iluminación se llama Alumbrado');
 
 -- =========================================================

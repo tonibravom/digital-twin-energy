@@ -79,7 +79,7 @@ El Partner indica a qué **magnitud** del motor alimenta cada sensor, y en qué 
 | Paso | Opciones | Campo |
 |---|---|---|
 | 1. Qué mide | **Contador general** (acometida) · **Total de un cuadro** · **Submedidor de un uso** | `sensores.funcion_medidor` (`GENERAL`, `CUADRO`, `USO`) |
-| 2. Uso (solo submedidores) | HVAC: climatización, refrigeración, calefacción, ACS, calefacción y ACS, renovación de aire · Alumbrado · Otros: informática, servicios comunes | `sensores.id_uso_energia` |
+| 2. Uso (solo submedidores) | HVAC: climatización, refrigeración, calefacción, ACS, calefacción y ACS, renovación de aire · Alumbrado · Informática · Servicios comunes (D48: «otros usos» no se asigna; es lo que queda sin uso determinado) | `sensores.id_uso_energia` |
 | 3. Cuadro del que depende | Un cuadro eléctrico del edificio o **ninguno** (medidor independiente, como el contador de gas de una caldera) | `sensores.id_cuadro` |
 
 Los **cuadros eléctricos** (`cuadros_electricos`) se dan de alta antes, en la configuración del edificio: cada uno en una planta o en un recinto, y opcionalmente colgado de otro cuadro (el de un local que se alimenta del cuadro de planta baja). Un cuadro tiene como mucho un medidor total activo. La base de datos impide cuadros de otro edificio, ciclos y medidores de gas colgados de un cuadro eléctrico.

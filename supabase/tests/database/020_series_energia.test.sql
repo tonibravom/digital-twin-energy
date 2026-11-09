@@ -58,7 +58,7 @@ select pg_temp.sensor('f1800000-0000-0000-0000-000000000004', 'TLOC', 'f1400000-
 select pg_temp.sensor('f1800000-0000-0000-0000-000000000005', 'ALOC', 'f1400000-0000-0000-0000-000000000001', 'ELECTRICIDAD', 'USO', 'ILUMINACION', 'f1500000-0000-0000-0000-000000000001');
 select pg_temp.sensor('f1800000-0000-0000-0000-000000000006', 'TP1', 'f1400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'CUADRO', null, 'f1500000-0000-0000-0000-000000000002');
 select pg_temp.sensor('f1800000-0000-0000-0000-000000000007', 'AP1', 'f1400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'USO', 'ILUMINACION', 'f1500000-0000-0000-0000-000000000002');
-select pg_temp.sensor('f1800000-0000-0000-0000-000000000008', 'INF', 'f1400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'USO', 'OTROS_INFORMATICA', 'f1500000-0000-0000-0000-000000000003');
+select pg_temp.sensor('f1800000-0000-0000-0000-000000000008', 'INF', 'f1400000-0000-0000-0000-000000000002', 'ELECTRICIDAD', 'USO', 'INFORMATICA', 'f1500000-0000-0000-0000-000000000003');
 select pg_temp.sensor('f1800000-0000-0000-0000-000000000009', 'GASC', 'f1400000-0000-0000-0000-000000000000', 'GAS', 'USO', 'HVAC_CALEFACCION_ACS', null);
 
 insert into magnitudes_edificio (id, id_edificio, id_magnitud, ambito)
@@ -110,9 +110,9 @@ select is((select round(valor::numeric, 1) from resumenes_diarios_usos
 -- =========================================================
 select is(pg_temp.dia('ILUMINACION:f1500000-0000-0000-0000-000000000002'), 192.0, 'Alumbrado · Planta 1');
 select is(pg_temp.dia('ILUMINACION'), 336.0, 'Total alumbrado (grupo)');
-select is(pg_temp.dia('OTROS_INFORMATICA:f1500000-0000-0000-0000-000000000003'), 96.0, 'Informática en su cuadro');
+select is(pg_temp.dia('INFORMATICA:f1500000-0000-0000-0000-000000000003'), 96.0, 'Informática en su cuadro');
 select is(pg_temp.dia('OTROS_NO_MEDIDO'), 576.0, 'Otros usos · no medido = general − cuadros');
-select is(pg_temp.dia('OTROS'), 1584.0, 'Total otros usos = cuadros + informática + no medido');
+select is(pg_temp.dia('OTROS'), 1488.0, 'Total otros usos (sin uso determinado) = diferencias de los cuadros + no medido');
 select is(pg_temp.dia('HVAC_CALEFACCION_ACS') || ' ' || pg_temp.dia('HVAC'), '288.0 288.0', 'Calefacción y ACS (gas) y total HVAC');
 select is(pg_temp.dia('ENERGIA_CONSUMIDA'), 2208.0, 'Energía total consumida = 1.920 electricidad + 288 gas');
 select is(pg_temp.dia('EMISIONES'),
