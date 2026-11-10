@@ -67,7 +67,7 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **Ficha** y **Configuración** son botones de la cabecera.
 - En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.
 
-**Pestaña Hoy** (D45, D46): desplazamiento vertical con tres bloques; la energía y el ambiente ocupan lo que necesitan y el Sankey tiene un alto fijo. Las pestañas caben sin desplazamiento horizontal.
+**Pestaña Hoy** (D50): KPI de energía y, debajo, el Sankey ocupando el resto del alto. El **ambiente por recinto** pasa a la mitad inferior de la columna de alarmas (las dos mitades con desplazamiento vertical). Las pestañas caben sin desplazamiento horizontal.
 
 | Bloque | Contenido |
 |---|---|
