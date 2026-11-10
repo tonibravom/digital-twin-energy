@@ -141,7 +141,7 @@ begin
     ('R', 'ZONA-TEC', 'E-CUB-REF', 'Cuadro de cubierta · refrigeración', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'HVAC_REFRIGERACION', 'C-CUB'),
     ('R', 'ZONA-TEC', 'E-CUB-REN', 'Cuadro de cubierta · renovación de aire', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'HVAC_RENOVACION', 'C-CUB'),
     ('R', 'ZONA-TEC', 'E-CUB-A', 'Cuadro de cubierta · alumbrado', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'ILUMINACION', 'C-CUB'),
-    ('R', 'ZONA-TEC', 'E-CUB-INF', 'Cuadro de cubierta · informática', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'OTROS_INFORMATICA', 'C-CUB'),
+    ('R', 'ZONA-TEC', 'E-CUB-INF', 'Cuadro de cubierta · informática', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'INFORMATICA', 'C-CUB'),
     -- Agua (LoRaWAN, pulsos en litros)
     ('L', 'CUARTO-CONT', 'AGUA-CONT', 'Contador de agua', 'OTRA', 'ACUMULATIVA', 'DELTA', 'm³', 'AGUA', 'CONSUMO', null, null, null)
   ) x(con, rec, cod, nom, fam, nat, tra, uni, ene, flu, funcion, uso, cuadro);
