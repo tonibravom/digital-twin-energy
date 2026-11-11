@@ -48,7 +48,9 @@ Todos los cambios quedan en la **auditoría**.
 **Modelos 3D, paso a paso:**
 1. Se crea el registro del modelo, con la ruta `edificios/<id>/modelos/<archivo>.glb` o `recintos/<id>/modelos/<archivo>.glb`.
 2. Se sube el archivo al bucket privado. Límite de 200 MB; se admiten GLB, GLTF y compresión Draco.
-3. Se escriben las coordenadas tomadas de un **visor de GLB sobre ese mismo archivo** (ver `configuracion-partner.md`).
+3. Se asignan los **niveles del modelo** a cada planta y se colocan las etiquetas de los sensores: pulsando en el visor de la plataforma, o con coordenadas tomadas de un visor de GLB sobre ese mismo archivo (ver `modelos-3d.md`, D51).
+
+El GLB se prepara antes con `herramientas/modelo3d` (ver `modelos-3d.md`).
 
 ## 4. Importación desde Excel
 

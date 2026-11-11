@@ -34,7 +34,7 @@ Resumen para la revisión técnica del comprador.
 
 ## Verificación
 
-- `npx supabase test db` ejecuta 455 pruebas (47 de seguridad, 51 de conectores y configuración, 24 de KPIs, 22 de la página de edificio, 18 de usos y Sankey, 28 de configuración de edificios, 22 de históricos, 28 de importación avanzada, 37 de usuarios y acceso, 22 de Sentilo, LoRaWAN y secretos, 8 de API REST, 11 de recuperación de contraseña, 21 de edición de usuarios, 25 del motor de cálculo, 6 de potencia, 20 del panel del edificio, 5 de la campana de alarmas, 12 de temperaturas y emisiones, 29 de cuadros y usos y 19 de series de energía). Entre ellas:
+- `npx supabase test db` ejecuta 462 pruebas (47 de seguridad, 51 de conectores y configuración, 24 de KPIs, 22 de la página de edificio, 18 de usos y Sankey, 28 de configuración de edificios, 22 de históricos, 28 de importación avanzada, 37 de usuarios y acceso, 22 de Sentilo, LoRaWAN y secretos, 8 de API REST, 11 de recuperación de contraseña, 21 de edición de usuarios, 25 del motor de cálculo, 6 de potencia, 20 del panel del edificio, 5 de la campana de alarmas, 12 de temperaturas y emisiones, 29 de cuadros y usos, 19 de series de energía y 7 de plantas del modelo 3D). Entre ellas:
   - anónimo sin acceso;
   - usuario registrado sin ficha que intenta hacerse administrador;
   - Partner A que intenta leer, crear o modificar datos del Partner B;

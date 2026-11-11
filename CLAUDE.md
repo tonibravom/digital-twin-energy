@@ -17,7 +17,8 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
   - `docs/pagina-edificio.md` (panel en tres zonas: pestañas, 3D o sensores con gráfica, y alarmas);
   - `docs/configuracion-edificio.md` (alta guiada, edición, sustituciones, GLB, Excel, calendario);
   - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo);
-  - `docs/demo_limpiar.sql` y `docs/demo_torre.sql` (edificio de demostración con los simuladores; el borrado físico solo se admite en edificios `DEMO-*`);
+  - `docs/modelos-3d.md` (de Revit o Blender al visor: exportar, preparar con `herramientas/modelo3d` y publicar; los GLB nunca van al repositorio);
+  - `docs/demo_limpiar.sql`, `docs/demo_torre.sql` y `docs/demo_torre_modelo3d.sql` (edificio de demostración con los simuladores; el borrado físico solo se admite en edificios `DEMO-*`);
   - `docs/usuarios-acceso.md` (altas, contraseña inicial, doble factor y recuperación de contraseña por email).
 - Si el código contradice esos documentos, PREGUNTAR antes de cambiar nada.
 
@@ -68,6 +69,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (455 a 03/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía)
+npx supabase test db        # pruebas pgTAP (462 a 11/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```

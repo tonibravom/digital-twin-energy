@@ -1,0 +1,68 @@
+-- =========================================================
+-- PRUEBAS DE PLANTAS DEL MODELO 3D (migración 041)
+-- Ejecutar con:  npx supabase test db
+-- =========================================================
+begin;
+set search_path = public, extensions;
+
+select plan(7);
+
+insert into proveedores (id, codigo, nombre) values
+  ('fa000000-0000-0000-0000-00000000000a', 'MA', 'Partner modelo A'),
+  ('fa000000-0000-0000-0000-00000000000b', 'MB', 'Partner modelo B');
+insert into clientes (id, codigo, nombre) values ('fa100000-0000-0000-0000-000000000001', 'MC', 'Cliente modelo');
+insert into proveedores_clientes (id_proveedor, id_cliente) values
+  ('fa000000-0000-0000-0000-00000000000a', 'fa100000-0000-0000-0000-000000000001');
+insert into edificios (id, id_cliente, codigo, nombre, zona_horaria) values
+  ('fa200000-0000-0000-0000-000000000001', 'fa100000-0000-0000-0000-000000000001', 'ME', 'Edificio con modelo', 'Europe/Madrid'),
+  ('fa200000-0000-0000-0000-000000000002', 'fa100000-0000-0000-0000-000000000001', 'MO', 'Otro edificio', 'Europe/Madrid');
+insert into proveedores_edificios (id_proveedor, id_edificio) values
+  ('fa000000-0000-0000-0000-00000000000a', 'fa200000-0000-0000-0000-000000000001');
+insert into plantas (id, id_edificio, codigo, nombre, nivel, niveles_modelo) values
+  ('fa300000-0000-0000-0000-000000000000', 'fa200000-0000-0000-0000-000000000001', 'P0', 'Planta baja', 0, '{"L1 - Block 35","L1 - Block 37"}'),
+  ('fa300000-0000-0000-0000-000000000001', 'fa200000-0000-0000-0000-000000000001', 'P1', 'Entreplanta', 1, '{}'),
+  ('fa300000-0000-0000-0000-000000000009', 'fa200000-0000-0000-0000-000000000002', 'P0', 'Planta baja', 0, '{}');
+
+select is((select niveles_modelo from plantas where id = 'fa300000-0000-0000-0000-000000000000'),
+  '{"L1 - Block 35","L1 - Block 37"}'::text[], 'Una planta guarda varios niveles del modelo');
+select is((select niveles_modelo from plantas where id = 'fa300000-0000-0000-0000-000000000001'), '{}'::text[],
+  'Sin niveles asignados: lista vacía (el visor asigna por cota)');
+select throws_like($$ update plantas set niveles_modelo = '{"M1","M1"}' where id = 'fa300000-0000-0000-0000-000000000001' $$,
+  '%repetido en la planta%', 'Un nivel no se repite dentro de la misma planta');
+select throws_like($$ update plantas set niveles_modelo = '{"L1 - Block 37"}' where id = 'fa300000-0000-0000-0000-000000000001' $$,
+  '%ya está asignado a otra planta%', 'Un nivel del modelo pertenece a una sola planta del edificio');
+select lives_ok($$ update plantas set niveles_modelo = '{"L1 - Block 37"}' where id = 'fa300000-0000-0000-0000-000000000009' $$,
+  'El mismo nombre de nivel puede usarse en otro edificio');
+
+-- Acceso: el Partner del edificio asigna niveles; otro Partner no
+insert into auth.users (id, email) values
+  ('e9700000-0000-0000-0000-000000000001', 'a@modelo.test'), ('e9700000-0000-0000-0000-000000000002', 'b@modelo.test');
+insert into usuarios (id, auth_user_id, nombre, email, id_rol)
+select x.id::uuid, x.auth::uuid, 'U', x.mail, r.id
+from (values ('fa900000-0000-0000-0000-000000000001', 'e9700000-0000-0000-0000-000000000001', 'a@modelo.test'),
+             ('fa900000-0000-0000-0000-000000000002', 'e9700000-0000-0000-0000-000000000002', 'b@modelo.test')) x(id, auth, mail)
+join roles r on r.codigo = 'ADMIN_PARTNER';
+insert into usuarios_partners (id_usuario, id_proveedor) values
+  ('fa900000-0000-0000-0000-000000000001', 'fa000000-0000-0000-0000-00000000000a'),
+  ('fa900000-0000-0000-0000-000000000002', 'fa000000-0000-0000-0000-00000000000b');
+create function pg_temp.login(p_auth uuid) returns void language sql as $$
+  select set_config('request.jwt.claims', json_build_object('sub', p_auth, 'role', 'authenticated', 'aal', 'aal2',
+                    'session_id', gen_random_uuid())::text, true);
+$$;
+
+select pg_temp.login('e9700000-0000-0000-0000-000000000001');
+set local role authenticated;
+update plantas set niveles_modelo = '{"M1"}' where id = 'fa300000-0000-0000-0000-000000000001';
+reset role;
+select is((select niveles_modelo from plantas where id = 'fa300000-0000-0000-0000-000000000001'), '{"M1"}'::text[],
+  'El Partner del edificio asigna los niveles del modelo a sus plantas');
+
+select pg_temp.login('e9700000-0000-0000-0000-000000000002');
+set local role authenticated;
+update plantas set niveles_modelo = '{"INTRUSO"}' where id = 'fa300000-0000-0000-0000-000000000001';
+reset role;
+select is((select niveles_modelo from plantas where id = 'fa300000-0000-0000-0000-000000000001'), '{"M1"}'::text[],
+  'Otro Partner no puede cambiar las plantas del edificio');
+
+select * from finish();
+rollback;

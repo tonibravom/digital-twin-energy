@@ -1,0 +1,23 @@
+{
+  "name": "preparar-modelo3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prepara un GLB exportado de Revit o Blender para el visor 3D de la plataforma (docs/modelos-3d.md)",
+  "type": "module",
+  "bin": {
+    "preparar-modelo3d": "preparar.mjs"
+  },
+  "scripts": {
+    "preparar": "node preparar.mjs"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "draco3dgltf": "1.5.9",
+    "meshoptimizer": "0.22.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

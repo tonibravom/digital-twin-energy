@@ -81,6 +81,14 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 
 ## 3. 3D
 
+**Implementado (D51, 11/11/2026):** el visor ocupa el centro del panel (botón **3D | Lista**, recordado en el navegador) con el modelo del edificio:
+- selector **Planta**: «Todo el edificio» (solo la etiqueta del sensor seleccionado) o una planta (oculta las superiores, acerca la vista y muestra las etiquetas de sus sensores con valor y estado: verde comunicando, gris sin comunicación o sin datos, rojo alarma); las etiquetas que se solapan se apilan;
+- pulsar una etiqueta muestra el sensor en la gráfica del panel (sustituye al panel lateral previsto abajo);
+- pulsar el modelo identifica el elemento (categoría, tipo, planta, id del modelo) y, a Partner y administrador, el punto X / Y / Z con botón para copiarlo;
+- **Encuadrar** vuelve a la vista inicial. Pendiente: modelos de recinto, filtro por tipo, «Localizar en 3D» y pantalla completa.
+
+Especificación original:
+
 - Al entrar se carga el **modelo general del edificio**.
 - Un desplegable **"Modelo"** lista los modelos de recinto disponibles, con su planta: "Planta 1 · Nave A". Al elegir uno se carga ese modelo; la opción "Edificio completo" vuelve al general.
 - En el modelo no hay etiquetas de recinto; el recinto se elige siempre en la lista.

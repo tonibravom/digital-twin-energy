@@ -60,7 +60,8 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 | D48 | **Usos determinados y otros usos** (09/11/2026), modifica D46. Un submedidor con uso asignado mide ese uso: la informática es informática, no "otros usos". **Otros usos** es solo lo que no tiene uso determinado: la diferencia de cada cuadro (total − submedidores) y lo que el contador general no reparte. Usos principales: HVAC (con sus usos finales), Alumbrado, Informática, Servicios comunes y Otros usos. El Sankey compacto muestra los totales de esos usos; se amplía **pulsando el diagrama** (se quita el botón «Ampliar»). En el panel, el 3D o la lista de sensores ocupa 5/8 del alto y la gráfica 3/8 (mínimo 250 px) | §9 |
 | D49 | **Interfaz compacta y temas** (10/11/2026). Letra compacta en toda la plataforma, como los EMS: base 13 px y nada por debajo de 11 px; cabecera de 48 px. Tema **claro, oscuro o automático** (sigue al sistema), elegido en el menú del usuario y guardado en el navegador. Colores en variables CSS (`estilos/base.css`) y paleta de gráficas por tema. El Sankey muestra la energía de cada nodo; en el ampliado, también el % de la energía consumida (kWh; desde 10.000 kWh, MWh) | §9 |
 | D50 | **Distribución compacta del panel del edificio** (10/11/2026), modifica D45. Columna izquierda (pestaña Hoy): KPI de energía y Sankey, que ocupa el resto del alto. Centro: 3D o lista de sensores (2/3 del alto) y gráfica (1/3, mínimo 200 px, letra de 11 px). Columna derecha, algo más ancha: alarmas (mitad superior) y ambiente por recinto (mitad inferior), cada una con su desplazamiento vertical. Menos espacio entre cabecera, título y pestañas, e interlineado más ajustado en los KPI | §9 |
-| D10 | Las **coordenadas 3D** se introducen a mano (X, Y, Z), tomadas de un visor de GLB sobre el archivo final. El visor de la plataforma podrá mostrar las coordenadas bajo el cursor como ayuda | §12 |
+| D51 | **Visor 3D y modelos desde Revit o Blender** (11/11/2026), modifica D10. Proceso en tres etapas, igual para todos los Partners (`docs/modelos-3d.md`): exportar (Revit con Leia, vista 3D sin barandillas, mobiliario ni equipos; o Blender), **preparar** con `herramientas/modelo3d` (metros y Y arriba, solo id, categoría, nivel y tipo de cada elemento, geometría agrupada por nivel y material, Draco, informe con límites) y publicar. Cada planta indica qué **niveles del modelo** la forman (`plantas.niveles_modelo`, varios por planta; los no asignados van por cota). En el panel, el centro muestra el modelo (botón 3D \| Lista): «Todo el edificio» o una planta (oculta las superiores y muestra las etiquetas de sus sensores con valor y estado); pulsar una etiqueta la lleva a la gráfica; pulsar el modelo identifica el elemento y, a Partner y administrador, da el punto X, Y, Z. Demo: el modelo de ejemplo de Revit; la planta 1 de la torre pasa a ser la **entreplanta** | §9, §12 |
+| D10 | Las **coordenadas 3D** (X, Y, Z) se obtienen sobre el archivo preparado: **pulsando en el visor de la plataforma** (muestra el elemento y el punto; en Configuración se asignará al sensor), o a mano / por Excel con cualquier visor de GLB. Más adelante, desde sensores modelados como familias de Revit. Actualizada por D51 | §12 |
 
 ## Cambios técnicos aplicados en las migraciones (20/10/2026)
 
@@ -300,6 +301,12 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 ## Migración 040 · Usos determinados (09/11/2026)
 
 - `OTROS_INFORMATICA` → `INFORMATICA` y `OTROS_SERVICIOS_COMUNES` → `SERVICIOS_COMUNES`, sin padre (usos principales). "Otros usos" (`OTROS`) queda con `OTROS_SIN_DESGLOSE` (diferencias de los cuadros) y lo no medido. Las asignaciones, repartos y datos se conservan (van por identificador).
+
+## Migración 041 · Plantas del modelo 3D (11/11/2026)
+
+- `plantas.niveles_modelo text[]`: niveles del modelo 3D que forman cada planta. Trigger `validar_niveles_modelo_planta` (security definer; el permiso lo decide RLS): un nivel no se repite en la planta ni se asigna a dos plantas activas del mismo edificio.
+- `ubicaciones_3d.id_elemento_modelo`: elemento del modelo (id de Revit) sobre el que se colocó la etiqueta pulsando en el visor.
+- Herramienta `herramientas/modelo3d/preparar.mjs` (Node, gltf-transform) y guía `docs/modelos-3d.md`. El visor (web) usa three.js con el decodificador Draco servido desde la propia web (`public/draco/`) y abre el GLB con una URL firmada de Storage (1 h).
 
 ## Pendientes funcionales que debe cerrar el comprador
 

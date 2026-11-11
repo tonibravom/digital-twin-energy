@@ -9,7 +9,7 @@
 --   Planta baja vestíbulo, cuarto de contadores   cuadro: total y alumbrado
 --               y local comercial                 cuadro del local (cuelga del de planta baja):
 --                                                 total y alumbrado; ambiente por LoRaWAN
---   Plantas 1-5 oficinas                          cuadro: total y alumbrado; ambiente
+--   Entreplanta y plantas 2-5 (oficinas)          cuadro: total y alumbrado; ambiente
 --   Cubierta    zona técnica y sala de calderas   cuadro general de cubierta: total, refrigeración,
 --                                                 renovación de aire, alumbrado e informática;
 --                                                 fotovoltaica; caldera de gas (calefacción y ACS)
@@ -63,15 +63,19 @@ begin
   insert into public.proveedores_edificios (id_proveedor, id_edificio) values (v_prov, v_edif);
 
   -- Plantas y recintos
-  insert into public.plantas (id_edificio, codigo, nombre, nivel)
-  select v_edif, x.cod, x.nom, x.niv
-  from (values ('SOT', 'Sótano', -1), ('P0', 'Planta baja', 0), ('P1', 'Planta 1', 1), ('P2', 'Planta 2', 2),
-               ('P3', 'Planta 3', 3), ('P4', 'Planta 4', 4), ('P5', 'Planta 5', 5), ('CUB', 'Cubierta', 6)) x(cod, nom, niv);
+  -- Plantas y niveles del modelo 3D de ejemplo (Revit) que forman cada una (D51)
+  insert into public.plantas (id_edificio, codigo, nombre, nivel, niveles_modelo)
+  select v_edif, x.cod, x.nom, x.niv, x.niveles
+  from (values ('SOT', 'Sótano', -1, '{Parking}'::text[]),
+               ('P0', 'Planta baja', 0, '{"L1 - Block 35","L1 - Block 37","L1 - Block 43"}'),
+               ('P1', 'Entreplanta', 1, '{M1}'), ('P2', 'Planta 2', 2, '{L2}'),
+               ('P3', 'Planta 3', 3, '{L3}'), ('P4', 'Planta 4', 4, '{L4}'), ('P5', 'Planta 5', 5, '{L5}'),
+               ('CUB', 'Cubierta', 6, '{R1,R2,R3,"Green Roof Hardscape",Parapet,"Parapet 2","Block 39 - Parapet"}')) x(cod, nom, niv, niveles);
   insert into public.recintos (id_planta, codigo, nombre)
   select p.id, x.cod, x.nom
   from (values ('SOT', 'APARCAMIENTO', 'Aparcamiento'), ('P0', 'VESTIBULO', 'Vestíbulo'),
                ('P0', 'CUARTO-CONT', 'Cuarto de contadores'), ('P0', 'LOCAL', 'Local comercial'),
-               ('P1', 'OFICINAS-P1', 'Oficinas planta 1'), ('P2', 'OFICINAS-P2', 'Oficinas planta 2'),
+               ('P1', 'OFICINAS-P1', 'Oficinas entreplanta'), ('P2', 'OFICINAS-P2', 'Oficinas planta 2'),
                ('P3', 'OFICINAS-P3', 'Oficinas planta 3'), ('P4', 'OFICINAS-P4', 'Oficinas planta 4'),
                ('P5', 'OFICINAS-P5', 'Oficinas planta 5'), ('CUB', 'ZONA-TEC', 'Zona técnica de cubierta'),
                ('CUB', 'SALA-CALDERAS', 'Sala de calderas')) x(planta, cod, nom)
@@ -81,7 +85,7 @@ begin
   insert into public.cuadros_electricos (id_edificio, id_planta, codigo, nombre)
   select v_edif, p.id, x.cod, x.nom
   from (values ('SOT', 'C-SOT', 'Cuadro de sótano'), ('P0', 'C-PB', 'Cuadro de planta baja'),
-               ('P1', 'C-P1', 'Cuadro de planta 1'), ('P2', 'C-P2', 'Cuadro de planta 2'), ('P3', 'C-P3', 'Cuadro de planta 3'),
+               ('P1', 'C-P1', 'Cuadro de entreplanta'), ('P2', 'C-P2', 'Cuadro de planta 2'), ('P3', 'C-P3', 'Cuadro de planta 3'),
                ('P4', 'C-P4', 'Cuadro de planta 4'), ('P5', 'C-P5', 'Cuadro de planta 5'),
                ('CUB', 'C-CUB', 'Cuadro general de cubierta')) x(planta, cod, nom)
   join public.plantas p on p.id_edificio = v_edif and p.codigo = x.planta;
@@ -126,8 +130,8 @@ begin
     ('R', 'VESTIBULO', 'E-PB-A', 'Cuadro de planta baja · alumbrado', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'ILUMINACION', 'C-PB'),
     ('R', 'LOCAL', 'E-LOC-T', 'Cuadro del local · total', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'CUADRO', null, 'C-LOCAL'),
     ('R', 'LOCAL', 'E-LOC-A', 'Cuadro del local · alumbrado', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'ILUMINACION', 'C-LOCAL'),
-    ('R', 'OFICINAS-P1', 'E-P1-T', 'Cuadro de planta 1 · total', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'CUADRO', null, 'C-P1'),
-    ('R', 'OFICINAS-P1', 'E-P1-A', 'Cuadro de planta 1 · alumbrado', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'ILUMINACION', 'C-P1'),
+    ('R', 'OFICINAS-P1', 'E-P1-T', 'Cuadro de entreplanta · total', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'CUADRO', null, 'C-P1'),
+    ('R', 'OFICINAS-P1', 'E-P1-A', 'Cuadro de entreplanta · alumbrado', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'ILUMINACION', 'C-P1'),
     ('R', 'OFICINAS-P2', 'E-P2-T', 'Cuadro de planta 2 · total', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'CUADRO', null, 'C-P2'),
     ('R', 'OFICINAS-P2', 'E-P2-A', 'Cuadro de planta 2 · alumbrado', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'USO', 'ILUMINACION', 'C-P2'),
     ('R', 'OFICINAS-P3', 'E-P3-T', 'Cuadro de planta 3 · total', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh', 'ELECTRICIDAD', 'CONSUMO', 'CUADRO', null, 'C-P3'),
