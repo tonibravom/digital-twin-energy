@@ -126,13 +126,15 @@ Cada sensor tiene un punto X, Y, Z (metros, Y hacia arriba) sobre el archivo pre
 2. **A mano o por Excel**: coordenadas tomadas de cualquier visor de GLB sobre el **mismo archivo preparado**.
 3. **Más adelante**: sensores modelados como familias de Revit, con su posición extraída automáticamente.
 
-Recomendación: la etiqueta, a 1,2–1,6 m sobre el suelo del recinto. Si varios sensores comparten punto, el visor apila sus etiquetas.
+Recomendación: la etiqueta sobre una pared o el techo del recinto, a 1,2–2 m del suelo. Las etiquetas no se mueven de su punto: si dos valores se tapan en pantalla, el de menos prioridad muestra solo su punto (el valor aparece al pasar el ratón), así que conviene separar los sensores de un mismo recinto al menos 1,5 m.
+
+En la demo, `herramientas/modelo3d/puntos_demo.mjs` calculó los puntos sobre paredes reales del modelo; para un edificio real se usan las tres formas anteriores.
 
 ---
 
 ## 4. Lo que ve el usuario
 
-- **Todo el edificio**: el modelo completo; solo se muestra la etiqueta del sensor seleccionado.
-- **Una planta**: se ocultan las plantas superiores, la vista se acerca a esa planta y aparecen las etiquetas de sus sensores, con el último valor y el estado (verde comunicando, gris sin datos, rojo alarma).
-- Pulsar una etiqueta muestra el sensor en la gráfica del panel.
+- **Todo el edificio**: el modelo completo; solo se muestran la etiqueta del sensor seleccionado y las de los sensores con alarma.
+- **Una planta**: se ocultan las plantas superiores, la vista se acerca a esa planta y aparecen las etiquetas de sus sensores: un punto con el estado (verde comunicando, gris sin datos, rojo alarma) y el último valor; el nombre, al pasar el ratón.
+- Pulsar una etiqueta abre la gráfica flotante del sensor.
 - Pulsar el modelo identifica el elemento; arrastrar gira, rueda acerca, botón derecho desplaza; **Encuadrar** vuelve a la vista inicial.

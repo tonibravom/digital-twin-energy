@@ -14,7 +14,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
   - `docs/instalacion.md`, `docs/dimensionamiento.md`, `docs/seguridad.md`;
   - `docs/conectores.md` y `docs/configuracion-partner.md` (especificación del asistente de alta de dispositivos);
   - `docs/pantallas.md` (navegación, plantilla de ámbito de 3 niveles, KPIs, listas y permisos);
-  - `docs/pagina-edificio.md` (panel en tres zonas: pestañas, 3D o sensores con gráfica, y alarmas);
+  - `docs/pagina-edificio.md` (panel: pestañas a la izquierda y el 3D con gráfica flotante; sin 3D, sensores y gráfica);
   - `docs/configuracion-edificio.md` (alta guiada, edición, sustituciones, GLB, Excel, calendario);
   - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo);
   - `docs/modelos-3d.md` (de Revit o Blender al visor: exportar, preparar con `herramientas/modelo3d` y publicar; los GLB nunca van al repositorio);

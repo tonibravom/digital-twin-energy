@@ -81,11 +81,14 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 
 ## 3. 3D
 
-**Implementado (D51, 11/11/2026):** el visor ocupa el centro del panel (botón **3D | Lista**, recordado en el navegador) con el modelo del edificio:
-- selector **Planta**: «Todo el edificio» (solo la etiqueta del sensor seleccionado) o una planta (oculta las superiores, acerca la vista y muestra las etiquetas de sus sensores con valor y estado: verde comunicando, gris sin comunicación o sin datos, rojo alarma); las etiquetas que se solapan se apilan;
-- pulsar una etiqueta muestra el sensor en la gráfica del panel (sustituye al panel lateral previsto abajo);
+**Implementado (D51 y D52, 11/11/2026):** con modelo 3D, el visor ocupa todo el panel salvo la columna de pestañas (Hoy · Suministros · Ambiente · Producción · Alarmas):
+- selector **Planta**: «Todo el edificio» (solo el sensor seleccionado y los que tienen alarma) o una planta (oculta las superiores, acerca la vista y muestra las etiquetas de sus sensores);
+- **etiquetas**: un punto en la posición X, Y, Z exacta (verde comunicando, gris sin comunicación o sin datos, rojo alarma) y el valor con su unidad pegado a él; el nombre y el recinto, al pasar el ratón. No se apilan: si un valor tapa a otro de más prioridad, solo se ve su punto;
+- pulsar una etiqueta abre la **gráfica flotante** (semitransparente, sobre la parte baja del 3D, con Ampliar y Cerrar); también se abre desde los KPI, el Sankey ampliado, el ambiente y las alarmas, que además llevan el 3D a la planta del recinto o del sensor;
 - pulsar el modelo identifica el elemento (categoría, tipo, planta, id del modelo) y, a Partner y administrador, el punto X / Y / Z con botón para copiarlo;
-- **Encuadrar** vuelve a la vista inicial. Pendiente: modelos de recinto, filtro por tipo, «Localizar en 3D» y pantalla completa.
+- **Encuadrar** vuelve a la vista inicial. Pendiente: modelos de recinto, filtro por tipo y pantalla completa.
+
+Sin modelo 3D: lista de sensores y gráfica fija en el centro.
 
 Especificación original:
 
