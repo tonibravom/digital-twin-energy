@@ -2,7 +2,7 @@
 -- Al final sale un mensaje en ROJO a propósito con el resumen;
 -- al ser un error, deshace todos los datos de prueba.
 -- =========================================================
--- PRUEBAS DEL VALOR DE HOY Y EL SUMINISTRO DE CADA SENSOR (migración 046, D56)
+-- PRUEBAS DEL VALOR DE HOY Y EL SUMINISTRO DE CADA SENSOR (migraciones 046 y 047, D56)
 -- Ejecutar con:  npx supabase test db
 -- =========================================================
 begin;
@@ -11,7 +11,7 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-select plan(4);
+select plan(6);
 
 insert into proveedores (id, codigo, nombre) values ('fc700000-0000-0000-0000-00000000000a', 'HA', 'Partner hoy');
 insert into clientes (id, codigo, nombre) values ('fc710000-0000-0000-0000-000000000001', 'HC', 'Cliente hoy');
@@ -28,8 +28,12 @@ insert into sensores (id, id_conexion, id_recinto, id_familia, id_naturaleza, id
 select x.id::uuid, 'fc750000-0000-0000-0000-000000000001', 'fc740000-0000-0000-0000-000000000001', f.id, n.id, t.id, x.cod, x.cod, x.u,
        jsonb_build_object('clave', x.cod)
 from (values ('fc760000-0000-0000-0000-000000000001', 'RED', 'ENERGIA', 'ACUMULATIVA', 'DELTA', 'kWh'),
-             ('fc760000-0000-0000-0000-000000000002', 'T', 'TEMPERATURA', 'INSTANTANEA', 'PROMEDIO', '°C')) x(id, cod, fam, nat, tra, u)
+             ('fc760000-0000-0000-0000-000000000002', 'T', 'TEMPERATURA', 'INSTANTANEA', 'PROMEDIO', '°C'),
+             ('fc760000-0000-0000-0000-000000000003', 'GAS', 'OTRA', 'ACUMULATIVA', 'DELTA', 'm³'),
+             ('fc760000-0000-0000-0000-000000000004', 'AGUA', 'OTRA', 'ACUMULATIVA', 'DELTA', 'm³')) x(id, cod, fam, nat, tra, u)
 join familias_sensor f on f.codigo = x.fam join naturalezas_sensor n on n.codigo = x.nat join tratamientos_sensor t on t.codigo = x.tra;
+update sensores set id_tipo_energia = (select id from tipos_energia where codigo = 'GAS') where id = 'fc760000-0000-0000-0000-000000000003';
+update sensores set id_tipo_energia = (select id from tipos_energia where codigo = 'AGUA') where id = 'fc760000-0000-0000-0000-000000000004';
 insert into magnitudes_edificio (id, id_edificio, id_magnitud, ambito)
 select 'fc770000-0000-0000-0000-000000000001', 'fc720000-0000-0000-0000-000000000001', id, 'EDIFICIO'
 from magnitudes where codigo = 'CONSUMO_ELECTRICIDAD';
@@ -40,7 +44,11 @@ insert into magnitudes_fuentes (id_magnitud_edificio, id_sensor) values
 insert into lecturas (id_sensor, fecha_hora, valor) values
   ('fc760000-0000-0000-0000-000000000001', ((now() at time zone 'Europe/Madrid')::date::timestamp - interval '15 minutes') at time zone 'Europe/Madrid', 1000),
   ('fc760000-0000-0000-0000-000000000001', now() - interval '1 minute', 1042),
-  ('fc760000-0000-0000-0000-000000000002', now() - interval '1 minute', 21.5);
+  ('fc760000-0000-0000-0000-000000000002', now() - interval '1 minute', 21.5),
+  ('fc760000-0000-0000-0000-000000000003', ((now() at time zone 'Europe/Madrid')::date::timestamp - interval '15 minutes') at time zone 'Europe/Madrid', 500),
+  ('fc760000-0000-0000-0000-000000000003', now() - interval '1 minute', 510),
+  ('fc760000-0000-0000-0000-000000000004', ((now() at time zone 'Europe/Madrid')::date::timestamp - interval '15 minutes') at time zone 'Europe/Madrid', 80),
+  ('fc760000-0000-0000-0000-000000000004', now() - interval '1 minute', 82);
 
 insert into resultados (t) select is((select suministro from sensores_estado_edificio('fc720000-0000-0000-0000-000000000001') where codigo = 'RED'), 'ELECTRICIDAD',
   'El contador que alimenta el consumo de electricidad es el suministro de red');
@@ -51,14 +59,20 @@ insert into resultados (t) select is((select valor_hoy from sensores_estado_edif
 insert into resultados (t) select is((select suministro from sensores_estado_edificio('fc720000-0000-0000-0000-000000000001') where codigo = 'T'), null,
   'Un sensor que no alimenta un suministro no lleva suministro');
 
+insert into resultados (t) select is((select round(valor_hoy_kwh::numeric, 1) from sensores_estado_edificio('fc720000-0000-0000-0000-000000000001') where codigo = 'GAS'),
+  round((10 * private.parametro_vigente('FACTOR_CONVERSION_GAS', current_date))::numeric, 1),
+  'Gas en m³: lo de hoy también en kWh, con la conversión del motor');
+insert into resultados (t) select is((select valor_hoy_kwh from sensores_estado_edificio('fc720000-0000-0000-0000-000000000001') where codigo = 'AGUA'), null,
+  'El agua no es energía: sin kWh');
+
 do $$
 declare v_total int; v_fallos int; v_detalle text;
 begin
   select count(*), count(*) filter (where t like 'not ok%'),
          string_agg(split_part(t, E'\n', 1), E'\n' order by n) filter (where t like 'not ok%')
     into v_total, v_fallos, v_detalle from resultados;
-  if v_fallos = 0 and v_total = 4 then
-    raise exception 'RESULTADO: % de 4 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
+  if v_fallos = 0 and v_total = 6 then
+    raise exception 'RESULTADO: % de 6 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
     raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
   end if;
