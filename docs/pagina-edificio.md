@@ -88,10 +88,13 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - pulsar el modelo identifica el elemento (categoría, tipo, planta, id del modelo) y, a Partner y administrador, el punto X / Y / Z con botón para copiarlo;
 - **Encuadrar** vuelve a la vista inicial; el zoom no puede alejarse más que el encuadre y la cámara no baja de 35° (D53). Pendiente: modelos de recinto, filtro por tipo y pantalla completa.
 - **Etiquetas por dispositivo** (D53): una fila por sensor; pulsar una fila abre su gráfica.
-- **Pestaña Ambiente** (D55): edificio semitransparente, volúmenes de los recintos con el color del tramo de temperatura y leyenda de la temporada; fila «Exterior» en la tabla.
+- **Pestaña Hoy** (D56): edificio semitransparente (40 %); en «Todo el edificio», etiquetas de los sensores que no son de ambiente; en una planta, todas.
+- **Sin modelo 3D** (D56): corte esquemático del edificio (franjas por planta, recintos como cajas, etiquetas por dispositivo) con la gráfica fija debajo.
+- **3D | Esquema** (D56): en los edificios con modelo, el mismo corte esquemático como vista alternativa, con la gráfica flotante.
+- **Pestaña Ambiente** (D55): edificio semitransparente, volúmenes de los recintos con el color del tramo de temperatura y leyenda de la temporada; en las etiquetas solo los sensores ambientales (temperatura, humedad y CO₂); bajo la leyenda, el clima exterior en grande (icono, temperatura, estado del cielo, humedad, viento, UV y lluvia, con la previsión al pulsar); fila «Exterior» en la tabla.
 - **Clima exterior** (D54): recuadro en la barra del visor (en la de sensores si no hay 3D) con el tiempo; al pulsarlo, próximas horas y días.
 
-Sin modelo 3D: lista de sensores y gráfica fija en el centro.
+Sin modelo 3D: corte esquemático del edificio y gráfica fija en el centro (D56).
 
 Especificación original:
 
