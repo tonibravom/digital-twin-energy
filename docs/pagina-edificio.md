@@ -88,7 +88,7 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - pulsar el modelo identifica el elemento (categoría, tipo, planta, id del modelo) y, a Partner y administrador, el punto X / Y / Z con botón para copiarlo;
 - **Encuadrar** vuelve a la vista inicial; el zoom no puede alejarse más que el encuadre y la cámara no baja de 35° (D53). Pendiente: modelos de recinto, filtro por tipo y pantalla completa.
 - **Etiquetas por dispositivo** (D53): una fila por sensor; pulsar una fila abre su gráfica.
-- **Pestaña Hoy** (D56): edificio semitransparente (40 %); en «Todo el edificio», etiquetas de los sensores que no son de ambiente; en una planta, todas.
+- **Pestaña Hoy** (D56): con «Todo el edificio», edificio al 40 % y solo las etiquetas de los totales de cuadro, los consumos de suministros (red, gas, agua) y la producción renovable; con una planta, esa planta casi opaca, las de debajo como referencia, las de encima ocultas, y todas sus etiquetas.
 - **Sin modelo 3D** (D56): corte esquemático del edificio (franjas por planta, recintos como cajas, etiquetas por dispositivo) con la gráfica fija debajo.
 - **3D | Esquema** (D56): en los edificios con modelo, el mismo corte esquemático como vista alternativa, con la gráfica flotante.
 - **Pestaña Ambiente** (D55): edificio semitransparente, volúmenes de los recintos con el color del tramo de temperatura y leyenda de la temporada; en las etiquetas solo los sensores ambientales (temperatura, humedad y CO₂); bajo la leyenda, el clima exterior en grande (icono, temperatura, estado del cielo, humedad, viento, UV y lluvia, con la previsión al pulsar); fila «Exterior» en la tabla.

@@ -1,11 +1,11 @@
 -- =========================================================
--- PRUEBAS DE ETIQUETAS 3D SIN SOLAPE (migración 042, D53)
+-- PRUEBAS DE ETIQUETAS 3D SIN SOLAPE (migraciones 042 y 045, D53 y D56)
 -- Ejecutar con:  npx supabase test db
 -- =========================================================
 begin;
 set search_path = public, extensions;
 
-select plan(13);
+select plan(14);
 
 insert into proveedores (id, codigo, nombre) values
   ('fb000000-0000-0000-0000-00000000000a', 'EA', 'Partner etiquetas A'),
@@ -81,6 +81,10 @@ select is((select y from ubicaciones_3d where id = 'fb900000-0000-0000-0000-0000
 select is((select count(*)::integer from sensores_estado_edificio('fb200000-0000-0000-0000-000000000001')
            where id_dispositivo = 'fb600000-0000-0000-0000-000000000001' and jsonb_array_length(ubicaciones) = 1), 3,
   'Los sensores del dispositivo heredan su punto y llevan el dispositivo');
+
+select is((select count(*)::integer from sensores_estado_edificio('fb200000-0000-0000-0000-000000000001')
+           where funcion_medidor is null and tipo_energia is null and flujo_energia is null), 6,
+  'El estado de los sensores incluye su función y su energía (045; aquí, sondas sin energía)');
 
 -- Coordenadas copiadas al sustituir el modelo: no se comprueban hasta confirmarlas
 update modelos_3d set ancho_m = null where id = 'fb800000-0000-0000-0000-000000000001';

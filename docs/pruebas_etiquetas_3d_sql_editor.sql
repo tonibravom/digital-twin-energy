@@ -2,7 +2,7 @@
 -- Al final sale un mensaje en ROJO a propósito con el resumen;
 -- al ser un error, deshace todos los datos de prueba.
 -- =========================================================
--- PRUEBAS DE ETIQUETAS 3D SIN SOLAPE (migración 042, D53)
+-- PRUEBAS DE ETIQUETAS 3D SIN SOLAPE (migraciones 042 y 045, D53 y D56)
 -- Ejecutar con:  npx supabase test db
 -- =========================================================
 begin;
@@ -11,7 +11,7 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-select plan(13);
+select plan(14);
 
 insert into proveedores (id, codigo, nombre) values
   ('fb000000-0000-0000-0000-00000000000a', 'EA', 'Partner etiquetas A'),
@@ -88,6 +88,10 @@ insert into resultados (t) select is((select count(*)::integer from sensores_est
            where id_dispositivo = 'fb600000-0000-0000-0000-000000000001' and jsonb_array_length(ubicaciones) = 1), 3,
   'Los sensores del dispositivo heredan su punto y llevan el dispositivo');
 
+insert into resultados (t) select is((select count(*)::integer from sensores_estado_edificio('fb200000-0000-0000-0000-000000000001')
+           where funcion_medidor is null and tipo_energia is null and flujo_energia is null), 6,
+  'El estado de los sensores incluye su función y su energía (045; aquí, sondas sin energía)');
+
 -- Coordenadas copiadas al sustituir el modelo: no se comprueban hasta confirmarlas
 update modelos_3d set ancho_m = null where id = 'fb800000-0000-0000-0000-000000000001';
 update ubicaciones_3d set x = 5 where id = 'fb900000-0000-0000-0000-000000000001';
@@ -117,8 +121,8 @@ begin
   select count(*), count(*) filter (where t like 'not ok%'),
          string_agg(split_part(t, E'\n', 1), E'\n' order by n) filter (where t like 'not ok%')
     into v_total, v_fallos, v_detalle from resultados;
-  if v_fallos = 0 and v_total = 13 then
-    raise exception 'RESULTADO: % de 13 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
+  if v_fallos = 0 and v_total = 14 then
+    raise exception 'RESULTADO: % de 14 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
     raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
   end if;
