@@ -1,6 +1,6 @@
 -- =========================================================
 -- MODELO 3D DE LA TORRE DE DEMOSTRACIÓN (solo desarrollo y demos)
--- Requiere la migración 041 y el edificio DEMO-TORRE (docs/demo_torre.sql).
+-- Requiere las migraciones 041, 042 y 043 y el edificio DEMO-TORRE (docs/demo_torre.sql).
 -- Pegar entero en el SQL Editor de Supabase y pulsar Run.
 --
 -- 1. Adapta las plantas de la torre al modelo de Revit de ejemplo (D51):
@@ -8,8 +8,12 @@
 --      Plantas 2 a 5 = L2 a L5 · Cubierta = R1–R3, cubierta verde y antepechos
 --    (la antigua "Planta 1" pasa a llamarse "Entreplanta", con sus recintos, cuadro y sensores).
 -- 2. Registra el modelo del edificio (primero el registro y después el archivo).
--- 3. Coloca la etiqueta de cada sensor sobre una pared de su recinto (coordenadas en
---    metros, Y hacia arriba, sobre el archivo preparado con herramientas/modelo3d).
+-- 3. Agrupa los sensores en dispositivos (ambiental, medidor del cuadro, contador general…)
+--    y coloca una etiqueta por dispositivo (D53): altura fija de 1,5 m sobre el suelo de la
+--    planta y separadas al menos la distancia mínima del modelo. Requiere la migración 042.
+--
+-- 4. Asigna los volúmenes de las habitaciones a los sensores de temperatura (D55). El modelo
+--    pasa a la versión 2 (torre-v2.glb, con los volúmenes): si existía la versión 1, se sustituye.
 --
 -- Al final muestra la RUTA donde hay que subir el GLB preparado en Storage
 -- (bucket modelos-3d). Se puede ejecutar varias veces.
@@ -24,6 +28,7 @@ declare
   v_modelo uuid;
   v_archivo text;
   v_ubicadas integer;
+  v_volumenes integer;
 begin
   select id into v_edif from public.edificios where codigo = 'DEMO-TORRE';
   if v_edif is null then
@@ -46,58 +51,137 @@ begin
   update public.sensores s set nombre = replace(s.nombre, 'Oficinas planta 1', 'Oficinas entreplanta')
   where s.activo and s.nombre like '%Oficinas planta 1' and public.obtener_edificio_recinto(s.id_recinto) = v_edif;
 
-  -- 2. Registro del modelo del edificio (si ya hay uno activo, se usa ese)
+  -- 2. Registro del modelo del edificio: versión 2 (con los volúmenes de las habitaciones, D55).
+  --    Si existe la versión 1, se sustituye (sustituir_modelo_3d) sin copiar coordenadas: se colocan abajo.
   select id, archivo into v_modelo, v_archivo from public.modelos_3d
   where id_edificio = v_edif and tipo_modelo = 'EDIFICIO' and activo;
   if v_modelo is null then
-    v_archivo := 'edificios/' || v_edif || '/modelos/torre-v1.glb';
+    v_archivo := 'edificios/' || v_edif || '/modelos/torre-v2.glb';
     insert into public.modelos_3d (id_edificio, tipo_modelo, nombre, archivo, formato, compresion, descripcion)
     values (v_edif, 'EDIFICIO', 'Torre de oficinas (Revit)', v_archivo, 'GLB', 'DRACO',
             'Modelo de ejemplo de Revit exportado con Leia y preparado con herramientas/modelo3d')
     returning id into v_modelo;
+  elsif v_archivo like '%/torre-v1.glb' then
+    v_archivo := 'edificios/' || v_edif || '/modelos/torre-v2.glb';
+    v_modelo := public.sustituir_modelo_3d(v_modelo, v_archivo, null, 'DRACO', false);
   end if;
 
-  -- 3. Etiquetas sobre paredes reales del modelo (calculadas con herramientas/modelo3d/puntos_demo.mjs):
-  --    hasta 8 puntos por recinto, cada 1,6 m alternando 1,3 y 1,9 m de altura (en la cubierta
-  --    y el aparcamiento, sobre el suelo); los sensores del recinto ocupan los puntos por orden de código
-  with puntos(recinto, i, x, y, z) as (values
-      ('APARCAMIENTO', 0, -2.4, 1.89, -0.8), ('APARCAMIENTO', 1, -0.8, 1.89, -0.8), ('APARCAMIENTO', 2, 0.8, 1.89, -0.8), ('APARCAMIENTO', 3, 2.4, 1.89, -0.8),
-      ('APARCAMIENTO', 4, -2.4, 1.89, 0.8), ('APARCAMIENTO', 5, -0.8, 1.89, 0.8), ('APARCAMIENTO', 6, 0.8, 1.89, 0.8), ('APARCAMIENTO', 7, 2.4, 1.89, 0.8),
-      ('CUARTO-CONT', 0, -5.87, 7.83, -9.2), ('CUARTO-CONT', 1, -5.87, 7.23, -10.8), ('CUARTO-CONT', 2, -5.87, 7.23, -7.6), ('CUARTO-CONT', 3, -5.95, 7.83, -12.4),
-      ('CUARTO-CONT', 4, -5.82, 7.23, -14), ('VESTIBULO', 0, 6.93, 7.86, -5.8), ('VESTIBULO', 1, 6.93, 7.26, -4.2), ('VESTIBULO', 2, 6.93, 7.86, -2.6),
-      ('VESTIBULO', 3, 6.93, 7.86, -9), ('VESTIBULO', 4, 6.93, 7.26, -1), ('VESTIBULO', 5, 6.93, 7.86, 0.6), ('LOCAL', 0, -9.43, 7.14, -4.8),
-      ('LOCAL', 1, -9.33, 6.54, -3.2), ('LOCAL', 2, -9.43, 6.54, -6.4), ('LOCAL', 3, -9.33, 7.14, -1.6), ('LOCAL', 4, -9.33, 6.54, 0),
-      ('LOCAL', 5, -9.33, 7.14, 1.6), ('OFICINAS-P1', 0, -17.2, 10.56, -4.24), ('OFICINAS-P1', 1, -18.8, 9.96, -4.24), ('OFICINAS-P1', 2, -15.6, 9.96, -4.24),
-      ('OFICINAS-P1', 3, -20.4, 10.56, -4.24), ('OFICINAS-P1', 4, -14, 10.56, -4.24), ('OFICINAS-P1', 5, -12.4, 9.96, -4.24), ('OFICINAS-P2', 0, -2.4, 10.75, -4.13),
-      ('OFICINAS-P2', 1, 2.4, 11.35, -4.13), ('OFICINAS-P2', 2, -4, 11.35, -4.13), ('OFICINAS-P2', 3, 4, 10.75, -4.13), ('OFICINAS-P2', 4, -5.6, 10.75, -4.13),
-      ('OFICINAS-P3', 0, -0.8, 14.63, -4.13), ('OFICINAS-P3', 1, 0.8, 14.03, -4.13), ('OFICINAS-P3', 2, -2.4, 14.03, -4.13), ('OFICINAS-P3', 3, 2.4, 14.63, -4.13),
-      ('OFICINAS-P3', 4, -4, 14.63, -4.13), ('OFICINAS-P3', 5, 4, 14.03, -4.13), ('OFICINAS-P3', 6, -5.6, 14.03, -4.13), ('OFICINAS-P4', 0, 0.8, 18.69, -2.37),
-      ('OFICINAS-P4', 1, -0.8, 18.09, -2.37), ('OFICINAS-P4', 2, 2.4, 18.09, -2.37), ('OFICINAS-P4', 3, 4, 18.69, -2.37), ('OFICINAS-P4', 4, -4, 18.09, -2.37),
-      ('OFICINAS-P4', 5, 5.6, 18.09, -2.37), ('OFICINAS-P4', 6, -5.6, 18.69, -2.37), ('OFICINAS-P5', 0, 0.8, 22.15, -4.13), ('OFICINAS-P5', 1, -2.4, 22.15, -4.13),
-      ('OFICINAS-P5', 2, 2.4, 22.75, -4.13), ('OFICINAS-P5', 3, -4, 22.75, -4.13), ('OFICINAS-P5', 4, 4, 22.15, -4.13), ('OFICINAS-P5', 5, -5.6, 22.15, -4.13),
-      ('ZONA-TEC', 0, 1.1, 23.66, 3.2), ('ZONA-TEC', 1, 2.7, 23.66, 3.2), ('ZONA-TEC', 2, 4.3, 23.66, 3.2), ('ZONA-TEC', 3, 5.9, 23.66, 3.2),
-      ('ZONA-TEC', 4, 1.1, 23.66, 4.8), ('ZONA-TEC', 5, 2.7, 23.66, 4.8), ('ZONA-TEC', 6, 4.3, 23.66, 4.8), ('ZONA-TEC', 7, 5.9, 23.66, 4.8),
-      ('SALA-CALDERAS', 0, -12.4, 25.3, -6.8), ('SALA-CALDERAS', 1, -10.8, 25.3, -6.8), ('SALA-CALDERAS', 2, -9.2, 25.3, -6.8), ('SALA-CALDERAS', 3, -7.6, 25.3, -6.8),
-      ('SALA-CALDERAS', 4, -12.4, 25.3, -5.2), ('SALA-CALDERAS', 5, -10.8, 25.3, -5.2), ('SALA-CALDERAS', 6, -9.2, 25.3, -5.2), ('SALA-CALDERAS', 7, -7.6, 25.3, -5.2)),
-  sensores as (
-    select s.id, r.codigo as recinto, (row_number() over (partition by r.id order by s.codigo) - 1) % 8 as i
-    from public.sensores s
-    join public.recintos r on r.id = s.id_recinto
-    join public.plantas pl on pl.id = r.id_planta and pl.id_edificio = v_edif
-    where s.activo
+  -- Medidas y niveles del modelo preparado (informe de herramientas/modelo3d): fijan la altura
+  -- de las etiquetas y la distancia mínima entre ellas (D53)
+  update public.modelos_3d set ancho_m = 55.9, fondo_m = 32.4, alto_m = 29.6,
+    niveles = '[{"nombre": "Parking", "cota": 1.83}, {"nombre": "L1 - Block 35", "cota": 5.18},
+                {"nombre": "L1 - Block 37", "cota": 5.93}, {"nombre": "L1 - Block 43", "cota": 6.98},
+                {"nombre": "M1", "cota": 8.66}, {"nombre": "L2", "cota": 9.45}, {"nombre": "L3", "cota": 12.73},
+                {"nombre": "L4", "cota": 16.79}, {"nombre": "L5", "cota": 20.85}, {"nombre": "R1", "cota": 23.41},
+                {"nombre": "Block 39 - Parapet", "cota": 24.26}, {"nombre": "R2", "cota": 24.92},
+                {"nombre": "Green Roof Hardscape", "cota": 25.22}, {"nombre": "Parapet", "cota": 25.4},
+                {"nombre": "R3", "cota": 27.97}, {"nombre": "Parapet 2", "cota": 28.57}]'
+  where id = v_modelo;
+
+  -- 3. Dispositivos (D53: una etiqueta por dispositivo, con una fila por sensor):
+  --    en cada recinto, el sensor ambiental (temperatura, humedad y CO2) y el medidor del cuadro;
+  --    en el cuarto de contadores, el contador general; en la cubierta, el cuadro general.
+  --    El agua, la fotovoltaica y el gas quedan como sensores sueltos.
+  delete from public.ubicaciones_3d where id_modelo_3d = v_modelo;
+  with grupos(recinto, prefijo, codigo, nombre, tipo) as (values
+      ('APARCAMIENTO', 'AMB-SOT-', 'AMB-SOT', 'Ambiente · Aparcamiento', 'SENSOR_AMBIENTAL'),
+      ('APARCAMIENTO', 'E-SOT-', 'MED-SOT', 'Cuadro de sótano', 'CONTADOR_ENERGIA'),
+      ('VESTIBULO', 'AMB-PB-', 'AMB-PB', 'Ambiente · Vestíbulo', 'SENSOR_AMBIENTAL'),
+      ('VESTIBULO', 'E-PB-', 'MED-PB', 'Cuadro de planta baja', 'CONTADOR_ENERGIA'),
+      ('LOCAL', 'AMB-LOC-', 'AMB-LOC', 'Ambiente · Local comercial', 'SENSOR_AMBIENTAL'),
+      ('LOCAL', 'E-LOC-', 'MED-LOC', 'Cuadro del local', 'CONTADOR_ENERGIA'),
+      ('CUARTO-CONT', '%-GENERAL', 'CONT-GEN', 'Contador general', 'SMART_METER'),
+      ('OFICINAS-P1', 'AMB-P1-', 'AMB-P1', 'Ambiente · Oficinas entreplanta', 'SENSOR_AMBIENTAL'),
+      ('OFICINAS-P1', 'E-P1-', 'MED-P1', 'Cuadro de entreplanta', 'CONTADOR_ENERGIA'),
+      ('OFICINAS-P2', 'AMB-P2-', 'AMB-P2', 'Ambiente · Oficinas planta 2', 'SENSOR_AMBIENTAL'),
+      ('OFICINAS-P2', 'E-P2-', 'MED-P2', 'Cuadro de planta 2', 'CONTADOR_ENERGIA'),
+      ('OFICINAS-P3', 'AMB-P3-', 'AMB-P3', 'Ambiente · Oficinas planta 3', 'SENSOR_AMBIENTAL'),
+      ('OFICINAS-P3', 'E-P3-', 'MED-P3', 'Cuadro de planta 3', 'CONTADOR_ENERGIA'),
+      ('OFICINAS-P4', 'AMB-P4-', 'AMB-P4', 'Ambiente · Oficinas planta 4', 'SENSOR_AMBIENTAL'),
+      ('OFICINAS-P4', 'E-P4-', 'MED-P4', 'Cuadro de planta 4', 'CONTADOR_ENERGIA'),
+      ('OFICINAS-P5', 'AMB-P5-', 'AMB-P5', 'Ambiente · Oficinas planta 5', 'SENSOR_AMBIENTAL'),
+      ('OFICINAS-P5', 'E-P5-', 'MED-P5', 'Cuadro de planta 5', 'CONTADOR_ENERGIA'),
+      ('ZONA-TEC', 'E-CUB-', 'MED-CUB', 'Cuadro general de cubierta', 'CONTADOR_ENERGIA')),
+  datos as (
+    select g.*, r.id as id_recinto,
+           (select pg_catalog.min(coalesce(s.id_conexion, d.id_conexion)::text)::uuid
+            from public.sensores s left join public.dispositivos d on d.id = s.id_dispositivo
+            where s.id_recinto = r.id and s.activo and s.codigo like g.prefijo || case when g.prefijo like '\%%' then '' else '%' end) as id_conexion
+    from grupos g
+    join public.recintos r on r.codigo = g.recinto
+    join public.plantas p on p.id = r.id_planta and p.id_edificio = v_edif
   )
-  insert into public.ubicaciones_3d (id_modelo_3d, id_sensor, x, y, z, visible)
-  select v_modelo, s.id, p.x, p.y, p.z, true
-  from sensores s join puntos p on p.recinto = s.recinto and p.i = s.i
-  on conflict (id_modelo_3d, id_sensor) where id_sensor is not null
-  do update set x = excluded.x, y = excluded.y, z = excluded.z, por_revisar = false;
+  insert into public.dispositivos (id_recinto, id_conexion, id_tipo_dispositivo, codigo, nombre)
+  select d.id_recinto, d.id_conexion, t.id, d.codigo, d.nombre
+  from datos d join public.tipos_dispositivo t on t.codigo = d.tipo
+  where d.id_conexion is not null
+    and not exists (select 1 from public.dispositivos x where x.id_recinto = d.id_recinto and x.codigo = d.codigo);
+
+  update public.sensores s set id_dispositivo = d.id, id_conexion = null
+  from public.dispositivos d
+  join public.recintos r on r.id = d.id_recinto
+  join public.plantas p on p.id = r.id_planta and p.id_edificio = v_edif
+  where s.id_recinto = d.id_recinto and s.activo and s.id_dispositivo is null
+    and s.id_conexion = d.id_conexion
+    and (   (d.codigo = 'CONT-GEN' and s.codigo like '%-GENERAL')
+         or (d.codigo like 'AMB-%' and s.codigo like d.codigo || '-%')
+         or (d.codigo like 'MED-%' and s.codigo like 'E-' || substr(d.codigo, 5) || '-%'));
+
+  -- 4. Etiquetas: un punto (x, z) por dispositivo o sensor suelto; la altura (1,5 m sobre el
+  --    suelo de la planta) la pone la plataforma. Separadas al menos la distancia mínima del
+  --    modelo (de 7,9 m para una fila a 16,1 m para cinco), que la plataforma comprueba.
+  with puntos(codigo, x, z) as (values
+      ('AMB-SOT', -10.0, -5.0), ('MED-SOT', 5.0, -5.0),
+      ('AMB-LOC', -16.0, -8.0), ('MED-LOC', -24.0, 4.0), ('CONT-GEN', -2.0, -12.0), ('AGUA-CONT', -10.0, 4.0),
+      ('AMB-PB', 4.0, 4.0), ('MED-PB', 14.0, -10.0),
+      ('AMB-P1', -23.8, -10.5), ('MED-P1', -11.9, -10.5),
+      ('AMB-P2', -4.6, 2.4), ('MED-P2', -4.0, -10.0), ('AMB-P3', -18.0, -6.0), ('MED-P3', -4.0, -10.0),
+      ('AMB-P4', -18.0, -6.0), ('MED-P4', -4.0, -10.0), ('AMB-P5', -18.0, -6.0), ('MED-P5', -4.0, -10.0),
+      ('MED-CUB', 3.5, 4.0), ('FV-PROD', 20.0, 4.0), ('GAS-CALDERA', -10.0, -6.0)),
+  elementos as (
+    select d.id as id_dispositivo, null::uuid as id_sensor, d.codigo
+    from public.dispositivos d join public.recintos r on r.id = d.id_recinto
+    join public.plantas p on p.id = r.id_planta and p.id_edificio = v_edif
+    where d.activo
+    union all
+    select null, s.id, s.codigo
+    from public.sensores s join public.recintos r on r.id = s.id_recinto
+    join public.plantas p on p.id = r.id_planta and p.id_edificio = v_edif
+    where s.activo and s.id_dispositivo is null
+  )
+  insert into public.ubicaciones_3d (id_modelo_3d, id_dispositivo, id_sensor, x, y, z, visible)
+  select v_modelo, e.id_dispositivo, e.id_sensor, p.x, 0, p.z, true
+  from elementos e join puntos p on p.codigo = e.codigo;
   get diagnostics v_ubicadas = row_count;
+
+  -- 5. Volúmenes de las habitaciones (GLB versión 2) asignados a los sensores de temperatura (D55);
+  --    el de la planta 2 tiene dos volúmenes
+  delete from public.volumenes_sensor where id_modelo_3d = v_modelo;
+  with asignacion(sensor, clave, nombre, nivel, cx, cz) as (values
+      ('AMB-SOT-T', '2483026', 'Parking Garage', 'Parking', -0.61, -3.21),
+      ('AMB-PB-T', '2482993', 'Residential Lobby', 'L1 - Block 37', 3.48, -0.01),
+      ('AMB-LOC-T', '2482988', 'Café', 'L1 - Block 35', -15.42, -8.38),
+      ('AMB-LOC-T', '2482989', 'Café Kitchen', 'L1 - Block 35', -19.07, -11.73),
+      ('AMB-P1-T', '2483032', 'Mezzanine Dining', 'M1', -17.91, -10.71),
+      ('AMB-P2-T', '2482998', 'Live/Work Unit', 'L2', -4.61, 2.37),
+      ('AMB-P2-T', '2483001', 'Live/Work Unit', 'L2', 12.85, -9.26),
+      ('AMB-P3-T', '2483002', 'Office Unit', 'L3', -18.43, -6.26),
+      ('AMB-P4-T', '2483010', 'Office Unit', 'L4', -18.43, -6.59),
+      ('AMB-P5-T', '2483019', 'Office Unit', 'L5', -17.86, -7.02))
+  insert into public.volumenes_sensor (id_modelo_3d, id_sensor, clave_volumen, nombre_volumen, nivel_modelo, centro_x, centro_z)
+  select v_modelo, s.id, a.clave, a.nombre, a.nivel, a.cx, a.cz
+  from asignacion a
+  join public.sensores s on s.codigo = a.sensor and s.activo
+  join public.recintos r on r.id = s.id_recinto
+  join public.plantas p on p.id = r.id_planta and p.id_edificio = v_edif;
+  get diagnostics v_volumenes = row_count;
 
   insert into demo_resultado3d values
     (1, 'Bucket de Storage', 'modelos-3d'),
     (2, 'Carpeta donde subir el GLB preparado', pg_catalog.regexp_replace(v_archivo, '/[^/]+$', '')),
     (3, 'Nombre exacto del archivo', pg_catalog.regexp_replace(v_archivo, '^.*/', '')),
-    (4, 'Sensores con etiqueta', v_ubicadas::text);
+    (4, 'Etiquetas colocadas (dispositivos y sensores sueltos)', v_ubicadas::text),
+    (5, 'Volúmenes asignados a sensores de temperatura', v_volumenes::text);
 end;
 $$;
 

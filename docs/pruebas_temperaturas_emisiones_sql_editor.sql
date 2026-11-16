@@ -2,7 +2,7 @@
 -- Al final sale un mensaje en ROJO a propósito con el resumen;
 -- al ser un error, deshace todos los datos de prueba.
 -- =========================================================
--- PRUEBAS DE TEMPERATURAS CONFIGURABLES Y EMISIONES POR FUENTE (migración 036)
+-- PRUEBAS DE TEMPERATURAS CONFIGURABLES Y EMISIONES POR FUENTE (migraciones 036 y 043)
 -- Ejecutar con:  npx supabase test db
 -- Edificio en Europe/Madrid sin calendario (lunes a viernes laborables).
 -- "Ahora" = martes 20/10/2026 10:07 → día comparable lunes 19/10.
@@ -23,25 +23,27 @@ insert into edificios (id, id_cliente, codigo, nombre, zona_horaria) values
 -- =========================================================
 -- 1. Temperaturas por temporada
 -- =========================================================
-insert into resultados (t) select is((select array[temp_eficiencia_invierno, temp_confort_invierno, temp_eficiencia_verano, temp_confort_verano]
+insert into resultados (t) select is((select array[temp_eficiencia_invierno, temp_eficiencia_verano]
            from edificios where id = 'fe200000-0000-0000-0000-000000000001'),
-  array[19, 25, 27, 25]::numeric[], 'Valores por defecto: RITE (19 °C y 27 °C) y confort 25 °C');
+  array[19, 26]::numeric[], 'Valores por defecto: Te de 19 °C en invierno y 26 °C en verano (D55)');
 
--- Otro país: eficiencia 20 °C y confort 22 °C en invierno; 26 °C y 24 °C en verano
-update edificios set temp_eficiencia_invierno = 20, temp_confort_invierno = 22, temp_eficiencia_verano = 26, temp_confort_verano = 24,
+-- Otro edificio: Te de 20 °C en invierno y 25 °C en verano; los tramos se desplazan con la Te
+update edificios set temp_eficiencia_invierno = 20, temp_eficiencia_verano = 25,
        invierno_desde = '01-01', invierno_hasta = '12-31'
 where id = 'fe200000-0000-0000-0000-000000000001';
-insert into resultados (t) select is(estado_temperatura(20, 'INVIERNO', 20, 22) || estado_temperatura(21, 'INVIERNO', 20, 22) || estado_temperatura(22.5, 'INVIERNO', 20, 22),
-  'VERDENARANJAROJO', 'Invierno con otros límites: ≤ eficiencia verde, ≤ confort naranja, más rojo');
-insert into resultados (t) select is(estado_temperatura(26, 'VERANO', 26, 24) || estado_temperatura(24, 'VERANO', 26, 24) || estado_temperatura(23.9, 'VERANO', 26, 24),
-  'VERDENARANJAROJO', 'Verano con otros límites: ≥ eficiencia verde, ≥ confort naranja, menos rojo');
-insert into resultados (t) select is(ambiente_edificio('fe200000-0000-0000-0000-000000000001') - 'recintos',
-  '{"temporada": "INVIERNO", "temperatura_eficiencia": 20.0, "temperatura_confort": 22.0}'::jsonb,
-  'El ambiente devuelve la eficiencia y el confort de la temporada en curso');
-insert into resultados (t) select throws_ok($$ update edificios set temp_eficiencia_invierno = 23 where id = 'fe200000-0000-0000-0000-000000000001' $$,
-  '23514', null, 'Invierno: la eficiencia no puede superar el confort');
-insert into resultados (t) select throws_ok($$ update edificios set temp_eficiencia_verano = 40 where id = 'fe200000-0000-0000-0000-000000000001' $$,
-  '23514', null, 'Temperaturas fuera de un rango razonable');
+insert into resultados (t) select is(estado_temperatura(20, 'INVIERNO', 20) || '/' || estado_temperatura(21, 'INVIERNO', 20) || '/' || estado_temperatura(22.5, 'INVIERNO', 20)
+          || '/' || estado_temperatura(24, 'INVIERNO', 20) || '/' || estado_temperatura(24.1, 'INVIERNO', 20),
+  'EFICIENTE/LEVE/MODERADO/ALTO/MUY_ALTO', 'Invierno con Te 20: +1, +2,5, +4 y más');
+insert into resultados (t) select is(estado_temperatura(25, 'VERANO', 25) || '/' || estado_temperatura(24, 'VERANO', 25) || '/' || estado_temperatura(22.5, 'VERANO', 25)
+          || '/' || estado_temperatura(21, 'VERANO', 25) || '/' || estado_temperatura(20.9, 'VERANO', 25),
+  'EFICIENTE/LEVE/MODERADO/ALTO/MUY_ALTO', 'Verano con Te 25: −1, −2,5, −4 y menos');
+insert into resultados (t) select is(ambiente_edificio('fe200000-0000-0000-0000-000000000001') - 'recintos' - 'volumenes',
+  '{"temporada": "INVIERNO", "temperatura_eficiencia": 20.0}'::jsonb,
+  'El ambiente devuelve la Te de la temporada en curso (sin temperatura de confort)');
+insert into resultados (t) select throws_ok($$ update edificios set temp_eficiencia_invierno = 18.5 where id = 'fe200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'La Te de invierno no baja de 19 °C');
+insert into resultados (t) select throws_ok($$ update edificios set temp_eficiencia_verano = 27.5 where id = 'fe200000-0000-0000-0000-000000000001' $$,
+  '23514', null, 'La Te de verano no pasa de 27 °C');
 
 -- =========================================================
 -- 2. Fuentes: aporte y emisiones

@@ -56,8 +56,9 @@ insert into magnitudes_fuentes (id_magnitud_edificio, id_sensor) values
 insert into modelos_3d (id, id_edificio, tipo_modelo, nombre, archivo) values
   ('bb900000-0000-0000-0000-000000000001', 'bb200000-0000-0000-0000-000000000001', 'EDIFICIO', 'General',
    'edificios/bb200000-0000-0000-0000-000000000001/modelos/general_v1.glb');
-insert into ubicaciones_3d (id_modelo_3d, id_sensor, x, y, z) values
-  ('bb900000-0000-0000-0000-000000000001', 'bb700000-0000-0000-0000-000000000001', 1.5, 2.0, -3.0);
+-- Etiqueta del dispositivo (D53: los sensores de un dispositivo heredan su punto)
+insert into ubicaciones_3d (id_modelo_3d, id_dispositivo, x, y, z) values
+  ('bb900000-0000-0000-0000-000000000001', 'bb600000-0000-0000-0000-000000000001', 1.5, 2.0, -3.0);
 insert into complementos_edificio (id_edificio, codigo) values ('bb200000-0000-0000-0000-000000000001', '3D');
 
 insert into usuarios (id, auth_user_id, nombre, email, id_rol)
@@ -112,8 +113,9 @@ select is((select count(*) from lecturas where id_sensor = 'bb700000-0000-0000-0
   'Las lecturas siguen en el sensor antiguo (histórico conservado)');
 select is((select id_sensor from magnitudes_fuentes where id_magnitud_edificio = 'bb800000-0000-0000-0000-000000000001'),
   (select id from nuevo_sensor), 'La magnitud pasa a alimentarse del sensor nuevo');
-select is((select id_sensor from ubicaciones_3d where id_modelo_3d = 'bb900000-0000-0000-0000-000000000001'),
-  (select id from nuevo_sensor), 'La posición 3D pasa al sensor nuevo');
+select is((select (ubicaciones->0->>'x')::numeric from sensores_estado_edificio('bb200000-0000-0000-0000-000000000001')
+           where id_sensor = (select id from nuevo_sensor)), 1.5,
+  'El sensor nuevo hereda la posición 3D de su dispositivo');
 select is((select u.codigo from sensores s join usos_energia u on u.id = s.id_uso_energia where s.id = (select id from nuevo_sensor)),
   'HVAC_CLIMATIZACION', 'El uso final se conserva');
 

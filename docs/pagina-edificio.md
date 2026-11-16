@@ -86,7 +86,10 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **etiquetas**: un punto en la posición X, Y, Z exacta (verde comunicando, gris sin comunicación o sin datos, rojo alarma) y el valor con su unidad pegado a él; el nombre y el recinto, al pasar el ratón. No se apilan: si un valor tapa a otro de más prioridad, solo se ve su punto;
 - pulsar una etiqueta abre la **gráfica flotante** (semitransparente, sobre la parte baja del 3D, con Ampliar y Cerrar); también se abre desde los KPI, el Sankey ampliado, el ambiente y las alarmas, que además llevan el 3D a la planta del recinto o del sensor;
 - pulsar el modelo identifica el elemento (categoría, tipo, planta, id del modelo) y, a Partner y administrador, el punto X / Y / Z con botón para copiarlo;
-- **Encuadrar** vuelve a la vista inicial. Pendiente: modelos de recinto, filtro por tipo y pantalla completa.
+- **Encuadrar** vuelve a la vista inicial; el zoom no puede alejarse más que el encuadre y la cámara no baja de 35° (D53). Pendiente: modelos de recinto, filtro por tipo y pantalla completa.
+- **Etiquetas por dispositivo** (D53): una fila por sensor; pulsar una fila abre su gráfica.
+- **Pestaña Ambiente** (D55): edificio semitransparente, volúmenes de los recintos con el color del tramo de temperatura y leyenda de la temporada; fila «Exterior» en la tabla.
+- **Clima exterior** (D54): recuadro en la barra del visor (en la de sensores si no hay 3D) con el tiempo; al pulsarlo, próximas horas y días.
 
 Sin modelo 3D: lista de sensores y gráfica fija en el centro.
 

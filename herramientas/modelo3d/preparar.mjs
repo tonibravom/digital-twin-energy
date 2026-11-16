@@ -15,6 +15,10 @@
 //      cada vértice el número de elemento (_ID) para saber qué se ha pulsado.
 //   5. Unifica materiales repetidos y comprime con Draco.
 //   6. Escribe el informe: tamaño, triángulos, niveles con su cota, categorías y avisos.
+// Volúmenes de habitaciones (D55): los DirectShape que crea Dynamo a partir de las habitaciones
+// de Revit (con el nombre de la habitación) o los objetos de Blender con la propiedad
+// «Volumen» se conservan aparte, uno por objeto, con su nivel, superficie y posición; el visor
+// los ilumina en la pestaña Ambiente según la temperatura del sensor al que se asignan.
 // =========================================================
 import { readFile, stat, writeFile } from 'node:fs/promises'
 import { basename } from 'node:path'
@@ -71,6 +75,7 @@ async function main() {
 
   // ---------- 1-2. elementos en metros, con Y arriba ----------
   const elementos = []        // { id, categoria, nivel, tipo, minY, partes: [{ primitiva, matriz }] }
+  const volumenes = []        // { clave, nombre, minY, partes }
   const excluidos = new Map()
   escena.traverse((nodo) => {
     const malla = nodo.getMesh()
@@ -82,6 +87,11 @@ async function main() {
     if (excluir.includes(categoria)) { excluidos.set(categoria, (excluidos.get(categoria) ?? 0) + 1); return }
     const m = nombre.match(/<(\d+)\s+([^<]*)</)          // Leia: "Wall Muros <619340 Tipo<"
     const matriz = nodo.getWorldMatrix()
+    // Revit (Leia): los volúmenes son los DirectShape; Blender: objetos con la propiedad «Volumen»
+    // (en Revit, «Volumen» es la cubicación de cualquier elemento: no se usa)
+    const nombreVolumen = extras.parameters
+      ? (nombre.startsWith('DirectShape') ? (m ? m[2].trim() : nombre) : null)
+      : extras.Volumen ?? null
     let minY = Infinity
     for (const p of malla.listPrimitives()) {
       const pos = p.getAttribute('POSITION')
@@ -90,6 +100,11 @@ async function main() {
         const y = porMatriz(matriz, v[0], v[1], v[2], 1)[1]
         if (y < minY) minY = y
       }
+    }
+    if (nombreVolumen != null) {
+      volumenes.push({ clave: String(m ? m[1] : (par.UniqueId ?? nombre)), nombre: String(nombreVolumen), minY,
+                       partes: malla.listPrimitives().map((primitiva) => ({ primitiva, matriz })) })
+      return
     }
     elementos.push({
       id: m ? Number(m[1]) : (par.ElementId ?? par.UniqueId ?? nombre),
@@ -114,6 +129,7 @@ async function main() {
     e.nivel = n?.nombre ?? 'Sin nivel'
     e.nivelPorAltura = true
   }
+  for (const v of volumenes) v.nivel = ([...niveles].reverse().find((x) => x.cota <= v.minY + 0.5) ?? niveles[0])?.nombre ?? 'Sin nivel'
   if (!niveles.length) avisos.push({ nivel: 'AVISO', texto: 'Ningún elemento trae nivel: el visor no podrá mostrar el edificio planta a planta. Exporte con los niveles (Leia: Export Levels y Export Properties).' })
 
   // ---------- 4. agrupar por nivel y material, con el número de elemento en cada vértice ----------
@@ -163,6 +179,42 @@ async function main() {
     const malla = doc.createMesh(`${g.nivel} · ${g.material?.getName() ?? 'sin material'}`).addPrimitive(prim)
     nuevaEscena.addChild(doc.createNode(malla.getName()).setMesh(malla).setExtras({ nivel: g.nivel }))
   }
+  // Volúmenes: uno por objeto, con un material neutro (el visor pone el color)
+  const matVolumen = volumenes.length ? doc.createMaterial('volumen').setBaseColorFactor([0.8, 0.8, 0.8, 1]) : null
+  const datosVolumenes = []
+  for (const v of volumenes) {
+    let nv = 0, ni = 0
+    for (const { primitiva } of v.partes) { nv += primitiva.getAttribute('POSITION').getCount(); ni += primitiva.getIndices()?.getCount() ?? primitiva.getAttribute('POSITION').getCount() }
+    const pos = new Float32Array(nv * 3), idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni)
+    let ov = 0, oi = 0
+    for (const { primitiva, matriz } of v.partes) {
+      const P = primitiva.getAttribute('POSITION'), I = primitiva.getIndices(), n = P.getCount()
+      for (let i = 0; i < n; i++) { const a = P.getElement(i, []); pos.set(porMatriz(matriz, a[0], a[1], a[2], 1), (ov + i) * 3) }
+      if (I) for (let i = 0; i < I.getCount(); i++) idx[oi + i] = I.getScalar(i) + ov
+      else for (let i = 0; i < n; i++) idx[oi + i] = ov + i
+      ov += n; oi += I ? I.getCount() : n
+    }
+    // Superficie en planta: suma de las caras que miran hacia arriba, proyectadas
+    let area = 0
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]
+    for (let i = 0; i < nv; i++) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], pos[i * 3 + k]); hi[k] = Math.max(hi[k], pos[i * 3 + k]) }
+    for (let i = 0; i < ni; i += 3) {
+      const [a, b, c] = [idx[i] * 3, idx[i + 1] * 3, idx[i + 2] * 3]
+      const ux = pos[b] - pos[a], uz = pos[b + 2] - pos[a + 2], vx = pos[c] - pos[a], vz = pos[c + 2] - pos[a + 2]
+      const ny = uz * vx - ux * vz   // componente Y de la normal (u × v), con el orden de glTF
+      if (ny > 0) area += ny / 2
+    }
+    const prim = doc.createPrimitive().setMode(Primitive.Mode.TRIANGLES).setMaterial(matVolumen)
+      .setAttribute('POSITION', doc.createAccessor().setType(Accessor.Type.VEC3).setArray(pos).setBuffer(buffer))
+      .setIndices(doc.createAccessor().setType(Accessor.Type.SCALAR).setArray(idx).setBuffer(buffer))
+    const malla = doc.createMesh(`volumen · ${v.clave}`).addPrimitive(prim)
+    nuevaEscena.addChild(doc.createNode(malla.getName()).setMesh(malla).setExtras({ volumen: v.clave, nivel: v.nivel }))
+    datosVolumenes.push({ clave: v.clave, nombre: v.nombre, nivel: v.nivel, area_m2: Math.round(area),
+                          centro: [Math.round((lo[0] + hi[0]) * 50) / 100, Math.round((lo[2] + hi[2]) * 50) / 100],
+                          min: lo.map((x) => Math.round(x * 100) / 100), max: hi.map((x) => Math.round(x * 100) / 100) })
+  }
+  if (!volumenes.length) avisos.push({ nivel: 'INFO', texto: 'El modelo no trae volúmenes de habitaciones: la pestaña Ambiente no podrá iluminar los recintos. En Revit, conviértalas con Dynamo (ver docs/modelos-3d.md).' })
+
   // Sustituye la escena original por la agrupada
   for (const s of raiz.listScenes()) if (s !== nuevaEscena) s.dispose()
   raiz.setDefaultScene(nuevaEscena)
@@ -172,6 +224,7 @@ async function main() {
   let triangulos = 0
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity]
   for (const n of nuevaEscena.listChildren()) for (const p of n.getMesh().listPrimitives()) {
+    if (n.getExtras()?.volumen) continue
     triangulos += p.getIndices().getCount() / 3
     const a = p.getAttribute('POSITION'); const lo = a.getMin([]), hi = a.getMax([])
     for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], lo[k]); max[k] = Math.max(max[k], hi[k]) }
@@ -196,6 +249,8 @@ async function main() {
       niveles: niveles.map((n) => ({ nombre: n.nombre, cota: n.cota })),
       // Por número de elemento (_ID): [identificador de Revit, categoría, nivel, tipo]
       elementos: elementos.map((e) => [e.id, e.categoria, e.nivel, e.tipo]),
+      // Volúmenes de habitaciones: clave (id de Revit u objeto), nombre, nivel, superficie y posición
+      volumenes: datosVolumenes,
     },
   })
 
@@ -214,6 +269,7 @@ async function main() {
     objetos_en_visor: nuevaEscena.listChildren().length, materiales: raiz.listMaterials().length,
     dimensiones_m: { ancho: dim[0], alto: dim[1], fondo: dim[2] },
     niveles: nivelesInforme,
+    volumenes: datosVolumenes.map((v) => ({ clave: v.clave, nombre: v.nombre, nivel: v.nivel, area_m2: v.area_m2 })),
     categorias: Object.fromEntries([...conteoCat].sort((a, b) => b[1] - a[1])),
     avisos, valido: !avisos.some((a) => a.nivel === 'ERROR'),
   }
@@ -223,6 +279,7 @@ async function main() {
   console.log(`  Tamaño: ${informe.tamano_mb.entrada} MB → ${informe.tamano_mb.salida} MB`)
   console.log(`  ${elementos.length} elementos · ${triangulos.toLocaleString('es-ES')} triángulos · ${informe.objetos_en_visor} objetos en el visor · ${informe.materiales} materiales`)
   console.log(`  Dimensiones: ${dim[0]} × ${dim[2]} m, ${dim[1]} m de alto`)
+  if (datosVolumenes.length) console.log(`  ${datosVolumenes.length} volúmenes de habitaciones (para la pestaña Ambiente)`)
   console.log('  Niveles:'); for (const n of nivelesInforme) console.log(`    ${String(n.cota).padStart(7)} m  ${n.nombre} (${n.elementos} elementos)`)
   for (const a of avisos) console.log(`  [${a.nivel}] ${a.texto}`)
   process.exit(informe.valido ? 0 : 1)
