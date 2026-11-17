@@ -54,6 +54,25 @@ En la pestaña **Ambiente**, el visor ilumina cada recinto con el color de su te
 
 La herramienta de preparación reconoce esos DirectShape como volúmenes (no los mezcla con el edificio), les asigna la planta por la cota de su base y guarda su nombre y superficie. Si un modelo no trae volúmenes, el informe lo avisa y la pestaña Ambiente muestra el edificio sin colores. **No use DirectShape para otra cosa en la vista de exportación.**
 
+### 1.1 ter Placas solares (pestaña Producción, D58)
+
+En la pestaña **Producción** el visor ilumina las placas de cada instalación (fotovoltaica o solar térmica) con lo que producen en ese momento. Hay dos formas de situarlas:
+
+**A. Placas modeladas (preferente).** Se marcan con un texto en un parámetro **que ya existe en todos los elementos**, sin crear parámetros compartidos:
+
+| Programa | Dónde | Texto |
+|---|---|---|
+| Revit | Parámetro **Comentarios** (o **Marca**) de cada placa | `FV: <nombre del campo>` (fotovoltaica) o `ST: <nombre del campo>` (solar térmica) |
+| Blender | Propiedad personalizada **Produccion** del objeto | Igual: `FV: Cubierta sur`, `ST: Captadores ACS`… |
+
+- Da igual la familia o la categoría de la placa (modelo genérico, equipo eléctrico, mobiliario…): cuenta solo el texto.
+- Todas las placas con el mismo texto forman **un campo**; una instalación puede tener varios campos.
+- Selección rápida en Revit: seleccione una placa → clic derecho → *Seleccionar todos los ejemplares → Visibles en la vista* → escriba el texto en *Comentarios* para todas a la vez.
+- La herramienta de preparación las conserva aparte (un objeto por campo) y calcula su **superficie, inclinación y orientación**; el informe las lista para revisarlas. En la plataforma, la superficie del campo se asocia a la instalación con el mismo nombre (`clave_objeto`).
+- Orientación: 0° = sur, −90° = este, 90° = oeste, tomando el +Z del modelo como sur (norte de proyecto de Revit). Si el proyecto está girado respecto al norte real, corrija la orientación en la ficha de la instalación.
+
+**B. Placas sin modelar.** Si el modelo no trae placas (como la torre de demostración), en Configuración se marca su superficie sobre la planta donde están (normalmente la cubierta) pulsando sus vértices en el 3D: un polígono X/Z, con la altura sobre el suelo de esa planta y la inclinación. El visor dibuja ahí placas genéricas (rejilla de módulos). Mientras no exista la pantalla de Configuración, se registra en `superficies_produccion` (origen `DIBUJADA`); para la demo lo hace `docs/demo_torre_produccion.sql`.
+
 ### 1.2 Desde Blender
 
 1. Escala en metros (*Scene Properties → Units*, *Unit Scale* = 1) y el edificio cerca del origen.
@@ -147,11 +166,16 @@ A cada **sensor de temperatura** se le asignan **uno o varios volúmenes** del m
 
 ---
 
+### 3.5 Superficies de placas (D58)
+
+Cada instalación de producción tiene una o varias superficies (`superficies_produccion`): del modelo (`MODELO`, por el nombre del campo marcado en Revit o Blender) o dibujadas (`DIBUJADA`, polígono `[[x, z], …]` en metros sobre el modelo preparado, con `altura_m` sobre el suelo de la planta). La superficie de un polígono dibujado se calcula sola (con la inclinación). Al sustituir el GLB, las del modelo se reencuentran por el nombre del campo.
+
 ## 4. Lo que ve el usuario
 
 - **Todo el edificio**: el modelo completo; solo se muestran la etiqueta del sensor seleccionado y las de los sensores con alarma.
 - **Una planta**: se ocultan las plantas superiores, la vista se acerca a esa planta y aparecen las etiquetas de sus sensores: un punto con el estado (verde comunicando, gris sin datos, rojo alarma) y el último valor; el nombre, al pasar el ratón.
 - Pulsar una fila de una etiqueta abre la gráfica flotante de ese sensor.
 - **Pestaña Ambiente**: el edificio se vuelve semitransparente y los volúmenes asignados se iluminan con el color del tramo de temperatura de su sensor (gris sin datos), con la leyenda de la temporada. Pulsar un volumen abre la gráfica de su sensor.
+- **Pestaña Producción** (D58): todo el edificio en transparencia, sin selector de planta; las placas de cada instalación, del azul oscuro (parada) al amarillo intenso (a plena potencia), con su etiqueta (producción de hoy, potencia y % del pico) que se despliega al pulsarla o al pulsar las placas.
 - **Clima exterior** (arriba a la derecha): tiempo, temperatura, humedad, viento e índice UV; al pulsarlo, las próximas horas y días (MET Norway, D54).
 - Pulsar el modelo identifica el elemento; arrastrar gira, rueda acerca, botón derecho desplaza; **Encuadrar** vuelve a la vista inicial.

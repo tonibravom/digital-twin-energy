@@ -5,12 +5,13 @@
 --
 -- El simulador solo genera datos desde que está en marcha, así que el gráfico mensual de la
 -- pestaña Suministros (este año frente al anterior) sale casi vacío. Este script rellena los
--- contadores del medidor general de electricidad, gas y agua con una lectura diaria
+-- contadores del medidor general de electricidad, gas y agua, y los de producción (fotovoltaica y
+-- solar térmica, migración 052), con una lectura diaria
 -- (a las 0:00, hora del edificio) desde el 1 de enero del año pasado hasta la primera lectura
 -- que ya existe:
 --   · el consumo diario de partida es la media de los datos reales del simulador;
 --   · se modula por mes (gas: mucho más en invierno; electricidad: algo más en verano e
---     invierno; agua: algo más en verano), por día de la semana (fin de semana, menos) y con
+--     invierno; agua: algo más en verano; producción solar: mucho más en verano), por día de la semana (fin de semana, menos) y con
 --     una variación fija de ±8 % por día;
 --   · las lecturas se calculan HACIA ATRÁS desde la primera real, así que el contador sigue
 --     siendo continuo y creciente.
@@ -42,6 +43,8 @@ declare
   c_elec constant double precision[] := '{1.12,1.08,1.00,0.93,0.95,1.08,1.20,1.15,1.02,0.94,1.00,1.10}';
   c_gas  constant double precision[] := '{1.85,1.65,1.30,0.85,0.45,0.25,0.20,0.20,0.30,0.70,1.25,1.70}';
   c_agua constant double precision[] := '{0.90,0.90,0.95,1.00,1.05,1.15,1.20,1.10,1.05,0.95,0.90,0.90}';
+  c_sol  constant double precision[] := '{0.45,0.60,0.85,1.05,1.25,1.40,1.45,1.30,1.05,0.80,0.50,0.40}';
+  v_ref double precision;   -- factor del mes de los datos reales (la media se refiere a ese mes)
 begin
   select id, zona_horaria into v_edif, v_z from public.edificios where codigo = 'DEMO-TORRE';
   if v_edif is null then
@@ -51,7 +54,7 @@ begin
 
   for r in
     -- Contador de consumo del medidor general de cada suministro
-    select s.id, s.codigo, s.escala, su.tipo,
+    select s.id, s.codigo, s.escala, su.tipo,   -- GENERACION: fotovoltaica y solar térmica (052)
            coalesce(s.id_conexion, d.id_conexion) as id_conexion
     from public.suministros su
     join public.suministros_dispositivos sd on sd.id_suministro = su.id and sd.activo and sd.medidor_general
@@ -83,6 +86,8 @@ begin
 
     -- procesar_lecturas aplica la escala del sensor (p. ej. litros → m³): se envía el valor de origen
     v_ratio := coalesce(r.escala, 1);
+    v_ref := (case r.tipo when 'GAS' then c_gas when 'ELECTRICIDAD' then c_elec when 'GENERACION' then c_sol else c_agua end)
+             [extract(month from (v_t0 at time zone v_z))::int];
 
     -- Lecturas hacia atrás: la del día D es la primera real menos lo consumido desde D
     v_valor := v_v0;
@@ -95,8 +100,10 @@ begin
       v_dia := v_dia - 1;
       v_f := case r.tipo when 'GAS' then c_gas[extract(month from v_dia)::int]
                          when 'ELECTRICIDAD' then c_elec[extract(month from v_dia)::int]
-                         else c_agua[extract(month from v_dia)::int] end
-             * case when extract(isodow from v_dia) in (6, 7) then case r.tipo when 'GAS' then 0.6 else 0.45 end else 1.12 end
+                         when 'GENERACION' then c_sol[extract(month from v_dia)::int]
+                         else c_agua[extract(month from v_dia)::int] end / v_ref
+             * case when r.tipo = 'GENERACION' then 1   -- el sol no entiende de fines de semana
+                    when extract(isodow from v_dia) in (6, 7) then case r.tipo when 'GAS' then 0.6 else 0.45 end else 1.12 end
              * (0.92 + 0.16 * ((pg_catalog.hashtext(r.codigo || v_dia::text) & 1023) / 1023.0));
       v_valor := v_valor - v_media * v_f;   -- consumo del día v_dia
       exit when v_valor < 0;                 -- el contador no puede bajar de 0

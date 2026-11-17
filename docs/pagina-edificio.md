@@ -79,9 +79,14 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **consumo mensual**: barras de este año frente al anterior (electricidad y gas en kWh; agua en m³);
 - **contrato**: comercializadora, distribuidora, CUPS, nº de contrato o póliza, alta, tarifa, potencias contratadas P1–P6, contador de la compañía, energía verde y medidor general.
 La generación renovable va en Producción.
-**Producción renovable:** generación de hoy, parte consumida, cobertura y %. El resto, por diseñar.
+**Producción** (D58): una ficha desplegable por instalación (fotovoltaica y solar térmica; las demás tecnologías, más adelante), como en Suministros:
+- **KPIs de hoy.** Fotovoltaica: producción y variación frente al día comparable, potencia y % de la potencia pico, autoconsumo y excedente exportado (del medidor general de la red), cobertura del consumo eléctrico, producción específica (kWh/kWp), rendimiento (PR, con irradiancia) y emisiones evitadas. Solar térmica: producción y variación, potencia térmica, **aporte solar** (parte de la energía de los usos a los que da servicio que viene de las placas), producción específica (kWh/m²) y salto térmico impulsión − retorno;
+- **medidor** (inversor o contador de energía) en vivo, con cada parámetro pulsable;
+- **producción mensual** de este año frente al anterior (kWh);
+- **datos de la instalación**: potencia pico y módulos, inversor, modalidad de autoconsumo y CAU (FV); captadores, acumulador, usos servidos y caldera de apoyo (ST); superficie, orientación, inclinación, placas en el 3D, puesta en marcha, instalador y mantenedor.
+- **Sankey:** el calor de la solar térmica llega al uso al que da servicio (el reparto del calor renovable) junto al gas o la electricidad; al pasar el ratón por el uso se ve qué parte viene de cada energía.
 
-*Soporte:* `suministros_edificio` y `consumo_mensual_suministro` (048), `hoy_edificio` (023: consumos, curva, horario), `potencia_edificio` (033), `fuentes_hoy_edificio`, `ambiente_edificio` y `alarmas_edificio` (034), `sankey_energia` (024), `serie_magnitud` y `serie_sensor` (023, con semanas desde 034).
+*Soporte:* `suministros_edificio` y `consumo_mensual_suministro` (048), `produccion_edificio` (052), `hoy_edificio` (023: consumos, curva, horario), `potencia_edificio` (033), `fuentes_hoy_edificio`, `ambiente_edificio` y `alarmas_edificio` (034), `sankey_energia` (024), `serie_magnitud` y `serie_sensor` (023, con semanas desde 034).
 
 ## 3. 3D
 
@@ -95,6 +100,7 @@ La generación renovable va en Producción.
 - **Pestaña Hoy** (D56): con «Todo el edificio», edificio al 40 % y solo las etiquetas de suministro (Electricidad de la red, Gas, Renovables, Agua) con el color del KPI, el consumo de hoy y la variación frente al día comparable; con una planta, esa planta opaca, las de debajo como referencia y todo lo de encima de su techo recortado, con todas sus etiquetas. El gas muestra m³ y kWh. Los contadores muestran el consumo de hoy, no la lectura acumulada.
 - **Sin modelo 3D** (D56): corte esquemático del edificio (franjas por planta, recintos como cajas, etiquetas por dispositivo) con la gráfica fija debajo.
 - **3D | Esquema** (D56): en los edificios con modelo, el mismo corte esquemático como vista alternativa, con la gráfica flotante.
+- **Pestaña Producción** (D58): todo el edificio al 40 %, sin selector de planta; las placas iluminadas según lo que producen y una etiqueta por instalación sobre ellas (compacta: producción de hoy, potencia y % del pico; desplegada: todo el medidor). En el esquema, una caja «Placas» en la planta donde están, con la misma etiqueta.
 - **Pestaña Suministros** (D57): todo el edificio al 40 %, sin selector de planta, con una etiqueta por suministro en su medidor general: compacta (obligatorios) y, al pulsar la cabecera o abrir su ficha, desplegada con todos sus parámetros. En el **esquema** (3D | Esquema y edificios sin 3D), igual: solo la etiqueta de cada suministro en el recinto de su medidor, compacta o desplegada. En las demás pestañas, las etiquetas del medidor no llevan los parámetros opcionales.
 - **Pestaña Ambiente** (D55): edificio semitransparente, volúmenes de los recintos con el color del tramo de temperatura y leyenda de la temporada; en las etiquetas solo los sensores ambientales (temperatura, humedad y CO₂); bajo la leyenda, el clima exterior en grande (icono, temperatura, estado del cielo, humedad, viento, UV y lluvia, con la previsión al pulsar); fila «Exterior» en la tabla.
 - **Clima exterior** (D54): recuadro en la barra del visor (en la de sensores si no hay 3D) con el tiempo; al pulsarlo, próximas horas y días.

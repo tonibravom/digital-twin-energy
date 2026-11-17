@@ -19,6 +19,10 @@
 // de Revit (con el nombre de la habitación) o los objetos de Blender con la propiedad
 // «Volumen» se conservan aparte, uno por objeto, con su nivel, superficie y posición; el visor
 // los ilumina en la pestaña Ambiente según la temperatura del sensor al que se asignan.
+// Placas solares (D58): los elementos marcados «FV: <campo>» (fotovoltaica) o «ST: <campo>»
+// (solar térmica) en el parámetro Comentarios o Marca de Revit, o en la propiedad «Produccion»
+// de Blender, se conservan aparte, un objeto por campo, con su superficie, inclinación y
+// orientación; el visor los ilumina en la pestaña Producción.
 // =========================================================
 import { readFile, stat, writeFile } from 'node:fs/promises'
 import { basename } from 'node:path'
@@ -39,6 +43,9 @@ const LIMITES = {
 const CLAVES_NIVEL = ['Nivel', 'Level', 'Restricción de base', 'Base Constraint', 'Nivel base', 'Base Level',
   'Nivel de referencia', 'Reference Level', 'Nivel de planta', 'Schedule Level', 'planta', 'nivel']
 const CLAVES_CATEGORIA = ['Category', 'Categoría', 'categoria']
+// Dónde se marca un campo de placas: Comentarios o Marca (Revit, en español o en inglés) o Produccion (Blender)
+const CLAVES_PRODUCCION = ['Comentarios', 'Comments', 'Marca', 'Mark', 'Produccion', 'Producción']
+const MARCA_PRODUCCION = /^\s*(FV|ST)\s*:\s*(.+?)\s*$/i
 
 function argumentos() {
   const a = process.argv.slice(2)
@@ -62,6 +69,22 @@ function porMatriz(m, x, y, z, w) {
           m[2] * x + m[6] * y + m[10] * z + m[14] * w]
 }
 
+// Une las primitivas de un objeto (volumen o campo de placas) en coordenadas del modelo
+function fusionar(partes) {
+  let nv = 0, ni = 0
+  for (const { primitiva } of partes) { nv += primitiva.getAttribute('POSITION').getCount(); ni += primitiva.getIndices()?.getCount() ?? primitiva.getAttribute('POSITION').getCount() }
+  const pos = new Float32Array(nv * 3), idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni)
+  let ov = 0, oi = 0
+  for (const { primitiva, matriz } of partes) {
+    const P = primitiva.getAttribute('POSITION'), I = primitiva.getIndices(), n = P.getCount()
+    for (let i = 0; i < n; i++) { const a = P.getElement(i, []); pos.set(porMatriz(matriz, a[0], a[1], a[2], 1), (ov + i) * 3) }
+    if (I) for (let i = 0; i < I.getCount(); i++) idx[oi + i] = I.getScalar(i) + ov
+    else for (let i = 0; i < n; i++) idx[oi + i] = ov + i
+    ov += n; oi += I ? I.getCount() : n
+  }
+  return { pos, idx, nv, ni }
+}
+
 async function main() {
   const { entrada, salida, excluir } = argumentos()
   const avisos = []
@@ -76,6 +99,7 @@ async function main() {
   // ---------- 1-2. elementos en metros, con Y arriba ----------
   const elementos = []        // { id, categoria, nivel, tipo, minY, partes: [{ primitiva, matriz }] }
   const volumenes = []        // { clave, nombre, minY, partes }
+  const campos = new Map()    // placas solares: 'FV|Cubierta' → { tipo, campo, minY, partes }
   const excluidos = new Map()
   escena.traverse((nodo) => {
     const malla = nodo.getMesh()
@@ -100,6 +124,16 @@ async function main() {
         const y = porMatriz(matriz, v[0], v[1], v[2], 1)[1]
         if (y < minY) minY = y
       }
+    }
+    // Placas solares: el primer parámetro de CLAVES_PRODUCCION con «FV: …» o «ST: …»
+    let marca = null
+    for (const k of CLAVES_PRODUCCION) { const v = par[k] ?? extras[k]; if (typeof v === 'string' && MARCA_PRODUCCION.test(v)) { marca = v.match(MARCA_PRODUCCION); break } }
+    if (marca) {
+      const tipo = marca[1].toUpperCase(), campo = marca[2]
+      const c = campos.get(`${tipo}|${campo}`) ?? campos.set(`${tipo}|${campo}`, { tipo, campo, minY, partes: [] }).get(`${tipo}|${campo}`)
+      c.minY = Math.min(c.minY, minY)
+      c.partes.push(...malla.listPrimitives().map((primitiva) => ({ primitiva, matriz })))
+      return
     }
     if (nombreVolumen != null) {
       volumenes.push({ clave: String(m ? m[1] : (par.UniqueId ?? nombre)), nombre: String(nombreVolumen), minY,
@@ -129,6 +163,7 @@ async function main() {
     e.nivel = n?.nombre ?? 'Sin nivel'
     e.nivelPorAltura = true
   }
+  for (const c of campos.values()) c.nivel = ([...niveles].reverse().find((x) => x.cota <= c.minY + 0.5) ?? niveles[0])?.nombre ?? 'Sin nivel'
   for (const v of volumenes) v.nivel = ([...niveles].reverse().find((x) => x.cota <= v.minY + 0.5) ?? niveles[0])?.nombre ?? 'Sin nivel'
   if (!niveles.length) avisos.push({ nivel: 'AVISO', texto: 'Ningún elemento trae nivel: el visor no podrá mostrar el edificio planta a planta. Exporte con los niveles (Leia: Export Levels y Export Properties).' })
 
@@ -213,6 +248,39 @@ async function main() {
                           centro: [Math.round((lo[0] + hi[0]) * 50) / 100, Math.round((lo[2] + hi[2]) * 50) / 100],
                           min: lo.map((x) => Math.round(x * 100) / 100), max: hi.map((x) => Math.round(x * 100) / 100) })
   }
+  // Placas solares: un objeto por campo con un material neutro (el visor pone el color de la producción)
+  const matPlaca = campos.size ? doc.createMaterial('placa solar').setBaseColorFactor([0.12, 0.2, 0.35, 1]) : null
+  const datosProduccion = []
+  for (const c of campos.values()) {
+    const { pos, idx, nv, ni } = fusionar(c.partes)
+    // Superficie real de las caras que miran hacia arriba y su normal media (inclinación y orientación)
+    let area = 0, sx = 0, sy = 0, sz = 0
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]
+    for (let i = 0; i < nv; i++) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], pos[i * 3 + k]); hi[k] = Math.max(hi[k], pos[i * 3 + k]) }
+    for (let i = 0; i < ni; i += 3) {
+      const [a, b, d] = [idx[i] * 3, idx[i + 1] * 3, idx[i + 2] * 3]
+      const u = [pos[b] - pos[a], pos[b + 1] - pos[a + 1], pos[b + 2] - pos[a + 2]]
+      const v = [pos[d] - pos[a], pos[d + 1] - pos[a + 1], pos[d + 2] - pos[a + 2]]
+      const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]
+      const l = Math.hypot(...n)
+      if (l > 0 && n[1] / l > 0.2) { area += l / 2; sx += n[0]; sy += n[1]; sz += n[2] }
+    }
+    const ln = Math.hypot(sx, sy, sz) || 1
+    const inclinacion = Math.round(Math.acos(Math.min(1, sy / ln)) * 180 / Math.PI)
+    // Azimut con el criterio solar: 0 = sur (+Z del modelo), −90 = este (+X), 90 = oeste (−X). Orientación del
+    // modelo respecto al norte: la de Revit (norte de proyecto); revísela en la ficha de la instalación.
+    const azimut = inclinacion < 3 ? null : Math.round(Math.atan2(-sx, sz) * 180 / Math.PI)
+    const prim = doc.createPrimitive().setMode(Primitive.Mode.TRIANGLES).setMaterial(matPlaca)
+      .setAttribute('POSITION', doc.createAccessor().setType(Accessor.Type.VEC3).setArray(pos).setBuffer(buffer))
+      .setIndices(doc.createAccessor().setType(Accessor.Type.SCALAR).setArray(idx).setBuffer(buffer))
+    const malla = doc.createMesh(`produccion · ${c.tipo} · ${c.campo}`).addPrimitive(prim)
+    nuevaEscena.addChild(doc.createNode(malla.getName()).setMesh(malla).setExtras({ produccion: c.tipo, campo: c.campo, nivel: c.nivel }))
+    datosProduccion.push({ tipo: c.tipo === 'FV' ? 'FOTOVOLTAICA' : 'SOLAR_TERMICA', campo: c.campo, nivel: c.nivel,
+                           area_m2: Math.round(area * 10) / 10, inclinacion_grados: inclinacion, azimut_grados: azimut,
+                           centro: [Math.round((lo[0] + hi[0]) * 50) / 100, Math.round((lo[2] + hi[2]) * 50) / 100],
+                           min: lo.map((x) => Math.round(x * 100) / 100), max: hi.map((x) => Math.round(x * 100) / 100) })
+  }
+  if (!campos.size) avisos.push({ nivel: 'INFO', texto: 'El modelo no trae placas solares marcadas («FV: <campo>» o «ST: <campo>» en Comentarios o Marca): si el edificio tiene producción, su superficie se dibujará en la plataforma (ver docs/modelos-3d.md).' })
   if (!volumenes.length) avisos.push({ nivel: 'INFO', texto: 'El modelo no trae volúmenes de habitaciones: la pestaña Ambiente no podrá iluminar los recintos. En Revit, conviértalas con Dynamo (ver docs/modelos-3d.md).' })
 
   // Sustituye la escena original por la agrupada
@@ -251,6 +319,8 @@ async function main() {
       elementos: elementos.map((e) => [e.id, e.categoria, e.nivel, e.tipo]),
       // Volúmenes de habitaciones: clave (id de Revit u objeto), nombre, nivel, superficie y posición
       volumenes: datosVolumenes,
+      // Placas solares por campo: tipo, campo, nivel, superficie, inclinación, orientación y posición
+      produccion: datosProduccion,
     },
   })
 
@@ -270,6 +340,8 @@ async function main() {
     dimensiones_m: { ancho: dim[0], alto: dim[1], fondo: dim[2] },
     niveles: nivelesInforme,
     volumenes: datosVolumenes.map((v) => ({ clave: v.clave, nombre: v.nombre, nivel: v.nivel, area_m2: v.area_m2 })),
+    produccion: datosProduccion.map(({ tipo, campo, nivel, area_m2, inclinacion_grados, azimut_grados, centro }) =>
+      ({ tipo, campo, nivel, area_m2, inclinacion_grados, azimut_grados, centro })),
     categorias: Object.fromEntries([...conteoCat].sort((a, b) => b[1] - a[1])),
     avisos, valido: !avisos.some((a) => a.nivel === 'ERROR'),
   }
@@ -279,6 +351,7 @@ async function main() {
   console.log(`  Tamaño: ${informe.tamano_mb.entrada} MB → ${informe.tamano_mb.salida} MB`)
   console.log(`  ${elementos.length} elementos · ${triangulos.toLocaleString('es-ES')} triángulos · ${informe.objetos_en_visor} objetos en el visor · ${informe.materiales} materiales`)
   console.log(`  Dimensiones: ${dim[0]} × ${dim[2]} m, ${dim[1]} m de alto`)
+  for (const c of datosProduccion) console.log(`  Placas ${c.tipo === 'FOTOVOLTAICA' ? 'fotovoltaicas' : 'solares térmicas'} «${c.campo}»: ${c.area_m2} m², ${c.inclinacion_grados}°${c.azimut_grados != null ? `, azimut ${c.azimut_grados}°` : ''} (${c.nivel})`)
   if (datosVolumenes.length) console.log(`  ${datosVolumenes.length} volúmenes de habitaciones (para la pestaña Ambiente)`)
   console.log('  Niveles:'); for (const n of nivelesInforme) console.log(`    ${String(n.cota).padStart(7)} m  ${n.nombre} (${n.elementos} elementos)`)
   for (const a of avisos) console.log(`  [${a.nivel}] ${a.texto}`)
