@@ -1,6 +1,6 @@
 -- =========================================================
 -- SUMINISTROS DE LA TORRE DE DEMOSTRACIÓN (solo desarrollo y demos)
--- Requiere la migración 048 y el edificio DEMO-TORRE con su modelo 3D
+-- Requiere las migraciones 048 y 051 y el edificio DEMO-TORRE con su modelo 3D
 -- (docs/demo_torre.sql y docs/demo_torre_modelo3d.sql).
 -- Pegar entero en el SQL Editor de Supabase y pulsar Run. Se puede ejecutar varias veces.
 --
@@ -10,7 +10,8 @@
 --        y cos φ) y los opcionales del simulador: exportada, reactiva, aparente, tensión e
 --        intensidad por fase y frecuencia;
 --      · gas: nuevo dispositivo GAS-GEN con el contador de gas y la presión;
---      · agua: nuevo dispositivo AGUA-GEN (LoRaWAN) con el contador y el caudal.
+--      · agua: nuevo dispositivo AGUA-GEN (LoRaWAN) con el contador acumulado (m³), el caudal
+--        instantáneo y la presión (bar, entre 2 y 3). La temperatura del agua, opcional, no se simula.
 -- 3. Las etiquetas 3D del gas y del agua pasan del sensor suelto a su dispositivo.
 -- =========================================================
 
@@ -89,7 +90,9 @@ begin
       ('GAS-GEN', 'PRES-GAS', 'Presión del gas', 'PRESION', 'mbar', 'GAS',
        '{"ruta_valor": "valor", "filtro": {"punto": "PRES-GAS"}}'),
       ('AGUA-GEN', 'CAUDAL-AGUA', 'Caudal de agua', 'CAUDAL', 'm³/h', 'AGUA',
-       '{"dev_eui": "24E124136B000002", "campo": "flow"}')) x(disp, cod, nom, fam, uni, ene, dir)
+       '{"dev_eui": "24E124136B000002", "campo": "flow"}'),
+      ('AGUA-GEN', 'PRES-AGUA', 'Presión del agua', 'PRESION', 'bar', 'AGUA',
+       '{"dev_eui": "24E124136B000002", "campo": "pressure"}')) x(disp, cod, nom, fam, uni, ene, dir)
   join public.dispositivos d on d.codigo = x.disp and d.activo
   join public.recintos rc on rc.id = d.id_recinto
   join public.plantas p on p.id = rc.id_planta and p.id_edificio = v_edif
@@ -109,7 +112,7 @@ begin
       ('I-L1-GENERAL', 'INTENSIDAD_L1'), ('I-L2-GENERAL', 'INTENSIDAD_L2'), ('I-L3-GENERAL', 'INTENSIDAD_L3'),
       ('F-GENERAL', 'FRECUENCIA'),
       ('GAS-CALDERA', 'CONSUMO_GAS'), ('PRES-GAS', 'PRESION_GAS'),
-      ('AGUA-CONT', 'CONSUMO_AGUA'), ('CAUDAL-AGUA', 'CAUDAL_AGUA')) x(sensor, parametro)
+      ('AGUA-CONT', 'CONSUMO_AGUA'), ('CAUDAL-AGUA', 'CAUDAL_AGUA'), ('PRES-AGUA', 'PRESION_AGUA')) x(sensor, parametro)
   join public.parametros_medidor pm on pm.codigo = x.parametro
   where s.codigo = x.sensor and s.activo and public.obtener_edificio_recinto(s.id_recinto) = v_edif
     and s.id_parametro_medidor is distinct from pm.id;

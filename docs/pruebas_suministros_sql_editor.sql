@@ -11,7 +11,7 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-select plan(19);
+select plan(20);
 
 insert into proveedores (id, codigo, nombre) values
   ('fc000000-0000-0000-0000-00000000000a', 'SA', 'Partner suministros A'),
@@ -58,6 +58,9 @@ select pg_temp.sensor('fc700000-0000-0000-0000-000000000006', null, 'SUELTO', 'P
 insert into resultados (t) select is((select array_agg(codigo::text order by orden) from parametros_medidor where tipo_suministro = 'ELECTRICIDAD' and obligatorio),
   '{ENERGIA_ACTIVA_IMPORTADA,POTENCIA_ACTIVA,FACTOR_POTENCIA}'::text[],
   'Electricidad: consumo, potencia y cos φ son obligatorios');
+insert into resultados (t) select is((select array_agg(codigo::text order by orden) from parametros_medidor where tipo_suministro = 'AGUA'),
+  '{CONSUMO_AGUA,CAUDAL_AGUA,PRESION_AGUA,TEMPERATURA_AGUA}'::text[],
+  'Agua: consumo acumulado (obligatorio), caudal, presión y temperatura (051)');
 insert into resultados (t) select throws_like($$ select pg_temp.parametro('fc700000-0000-0000-0000-000000000002', 'FACTOR_POTENCIA') $$,
   '%no corresponde a un sensor de la familia POTENCIA%', 'El parámetro tiene que corresponder a la familia del sensor');
 insert into resultados (t) select throws_like($$ select pg_temp.parametro('fc700000-0000-0000-0000-000000000006', 'POTENCIA_ACTIVA') $$,
@@ -161,8 +164,8 @@ begin
   select count(*), count(*) filter (where t like 'not ok%'),
          string_agg(split_part(t, E'\n', 1), E'\n' order by n) filter (where t like 'not ok%')
     into v_total, v_fallos, v_detalle from resultados;
-  if v_fallos = 0 and v_total = 19 then
-    raise exception 'RESULTADO: % de 19 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
+  if v_fallos = 0 and v_total = 20 then
+    raise exception 'RESULTADO: % de 20 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
     raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
   end if;

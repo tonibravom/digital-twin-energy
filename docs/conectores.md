@@ -208,7 +208,7 @@ Con `SIMULADOR_ACTIVO=true`, la API incluye:
 | DevEUI | Dispositivo | Campos |
 |---|---|---|
 | `24E124710B000001` | Sensor de ambiente (tipo AM307) | `temperature`, `humidity`, `co2`, `battery` |
-| `24E124136B000002` | Contador de agua por pulsos (tipo EM300-DI) | `water` (litros acumulados), `battery` |
+| `24E124136B000002` | Contador de agua con caudal y presión | `water` (litros acumulados), `flow` (m³/h), `pressure` (bar), `battery` |
 | `24E124746B000003` | Medidor de energía de climatización | `active_energy` (kWh acumulados), `power` (W) |
 
 En producción, `SIMULADOR_ACTIVO=false`.

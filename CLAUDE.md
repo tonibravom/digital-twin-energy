@@ -69,6 +69,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (521 a 17/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D + 14 etiquetas 3D + 10 volúmenes + 10 clima + 6 valor de hoy + 19 suministros)
+npx supabase test db        # pruebas pgTAP (522 a 17/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D + 14 etiquetas 3D + 10 volúmenes + 10 clima + 6 valor de hoy + 20 suministros)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```

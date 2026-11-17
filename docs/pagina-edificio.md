@@ -75,7 +75,7 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 | 2 | **Diagrama Sankey** (hoy, 7 o 30 días), compacto; al pulsarlo se amplía con el detalle por uso y cuadro |
 | 3 | **Ambiente por recinto**: temperatura, humedad y CO₂ del último valor. Colores de temperatura con la **eficiencia** y el **confort** de la temporada, configurables por edificio (por defecto, invierno 19 / 25 °C y verano 27 / 25 °C). Humedad 30–70 % verde |
 **Suministros** (D57): una ficha desplegable por suministro (electricidad, gas, agua), una debajo de otra; la primera, abierta:
-- **medidor general**: sus parámetros en vivo (consumo de hoy, potencia, cos φ y los opcionales que mida: exportada, reactiva, aparente, tensiones, intensidades, frecuencia; presión del gas; caudal del agua). Cada uno abre su gráfica. Si falta el medidor o un parámetro obligatorio, aviso en rojo;
+- **medidor general**: sus parámetros en vivo (consumo de hoy, potencia, cos φ y los opcionales que mida: exportada, reactiva, aparente, tensiones, intensidades, frecuencia; presión del gas; caudal, presión y temperatura del agua). Cada uno abre su gráfica. Si falta el medidor o un parámetro obligatorio, aviso en rojo;
 - **consumo mensual**: barras de este año frente al anterior (electricidad y gas en kWh; agua en m³);
 - **contrato**: comercializadora, distribuidora, CUPS, nº de contrato o póliza, alta, tarifa, potencias contratadas P1–P6, contador de la compañía, energía verde y medidor general.
 La generación renovable va en Producción.

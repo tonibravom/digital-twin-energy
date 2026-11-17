@@ -5,7 +5,7 @@
 begin;
 set search_path = public, extensions;
 
-select plan(19);
+select plan(20);
 
 insert into proveedores (id, codigo, nombre) values
   ('fc000000-0000-0000-0000-00000000000a', 'SA', 'Partner suministros A'),
@@ -52,6 +52,9 @@ select pg_temp.sensor('fc700000-0000-0000-0000-000000000006', null, 'SUELTO', 'P
 select is((select array_agg(codigo::text order by orden) from parametros_medidor where tipo_suministro = 'ELECTRICIDAD' and obligatorio),
   '{ENERGIA_ACTIVA_IMPORTADA,POTENCIA_ACTIVA,FACTOR_POTENCIA}'::text[],
   'Electricidad: consumo, potencia y cos φ son obligatorios');
+select is((select array_agg(codigo::text order by orden) from parametros_medidor where tipo_suministro = 'AGUA'),
+  '{CONSUMO_AGUA,CAUDAL_AGUA,PRESION_AGUA,TEMPERATURA_AGUA}'::text[],
+  'Agua: consumo acumulado (obligatorio), caudal, presión y temperatura (051)');
 select throws_like($$ select pg_temp.parametro('fc700000-0000-0000-0000-000000000002', 'FACTOR_POTENCIA') $$,
   '%no corresponde a un sensor de la familia POTENCIA%', 'El parámetro tiene que corresponder a la familia del sensor');
 select throws_like($$ select pg_temp.parametro('fc700000-0000-0000-0000-000000000006', 'POTENCIA_ACTIVA') $$,
