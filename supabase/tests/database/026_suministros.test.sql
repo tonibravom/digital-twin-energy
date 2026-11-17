@@ -5,7 +5,7 @@
 begin;
 set search_path = public, extensions;
 
-select plan(17);
+select plan(19);
 
 insert into proveedores (id, codigo, nombre) values
   ('fc000000-0000-0000-0000-00000000000a', 'SA', 'Partner suministros A'),
@@ -143,6 +143,10 @@ select set_config('request.jwt.claims', json_build_object('sub', 'e9900000-0000-
 set local role authenticated;
 select is(suministros_edificio('fc200000-0000-0000-0000-000000000001'), '[]'::jsonb,
   'Otro Partner no ve las fichas de los suministros del edificio');
+select is((select count(*)::integer from sensores_estado_edificio('fc200000-0000-0000-0000-000000000001')), 0,
+  'Otro Partner no ve el estado de los sensores (050: security definer con control de acceso)');
+select is((select count(*)::integer from consumo_mensual_suministro('fc800000-0000-0000-0000-000000000001')), 0,
+  'Ni el consumo mensual de sus suministros');
 reset role;
 
 select * from finish();

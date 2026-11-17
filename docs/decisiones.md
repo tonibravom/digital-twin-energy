@@ -364,6 +364,12 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - `consumo_mensual_suministro()`: el mes en que el contador empieza a medir (sin lectura antes del cambio de mes) se calcula desde su primera lectura, en lugar de quedar vacío.
 - Demo: `docs/demo_torre_historico_suministros.sql` rellena los contadores de los medidores generales con una lectura diaria desde el 1 de enero del año pasado (hacia atrás desde la primera lectura real, con estacionalidad), por `procesar_lecturas` como histórico.
 
+## Migración 050 · Rendimiento del estado de los sensores (17/11/2026)
+
+- Con historial largo (una partición de `lecturas` por mes), «lo de hoy» de los contadores evaluaba la política RLS de `lecturas` en cada partición y en cada sensor: con un usuario de la web, `sensores_estado_edificio()` tardaba segundos y en Supabase superaba el límite («La consulta ha tardado demasiado»): el 3D se quedaba sin etiquetas y la pestaña Suministros sin datos.
+- `sensores_estado_edificio()` y `consumo_mensual_suministro()` pasan a **security definer con un solo control de acceso al principio** que reproduce las políticas de cada tabla (acceso al edificio; VER_COMUNICACION, VER_3D + VER_MODELOS_3D, VER_ALARMAS, VER_LECTURAS y VER_SUMINISTRO). Nuevas `private.valores_hoy_edificio()`, `private.puede_leer_lecturas_edificio()` y `private.sin_usuario_plataforma()` (la API como service_role y las conexiones directas siguen viéndolo todo, como con RLS). Mismos resultados; en local, de 3,3 s a 0,1 s con un usuario Partner.
+- **Regla para funciones nuevas que lean `lecturas` de muchos sensores:** control de acceso una vez y lectura sin RLS (security definer), nunca RLS por fila sobre la tabla particionada.
+
 ## Pendientes funcionales que debe cerrar el comprador
 
 Son decisiones de negocio que el código deja abiertas a propósito:

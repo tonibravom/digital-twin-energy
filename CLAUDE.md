@@ -46,7 +46,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 7. **Toda lectura entra por `public.procesar_lecturas()`** (o `procesar_lecturas_token`; los históricos, por `procesar_lote_lecturas` o `procesar_lote_token`). Ningún conector inserta directamente en `lecturas`. Protocolos nuevos = fila en `tipos_conexion` con sus esquemas + conector en la API; nunca tablas por protocolo. Ver `docs/conectores.md`.
 8. **Energía consumida** = electricidad importada + gas + renovable consumida (FV y eólica − exportada + térmicas). Emisiones: solo importada y gas. Misma definición en KPIs, HOY y Sankey.
 9. El motor (032) calcula por edificio en la base de datos (`motor_calcular`, cola `motor_pendiente`, pg_cron `motor_15min`). Los KPIs de los dashboards salen SIEMPRE de `kpis_ambito` / `kpis_lista` (sobre `resumenes_diarios`), y la página de edificio de `hoy_edificio`, `potencia_edificio`, `fuentes_hoy_edificio`, `ambiente_edificio`, `clima_edificio`, `suministros_edificio`, `consumo_mensual_suministro`, `alarmas_edificio`, `sankey_energia`, `serie_energia`, `series_energia_edificio`, `serie_magnitud`, `serie_sensor` y `sensores_estado_edificio`. Nunca se suman lecturas desde la web.
-10. Tablas grandes (`lecturas`, `valores_magnitud`): políticas con `columna in (select private.xxx_accesibles())`, nunca funciones evaluadas por fila.
+10. Tablas grandes (`lecturas`, `valores_magnitud`): políticas con `columna in (select private.xxx_accesibles())`, nunca funciones evaluadas por fila. Las funciones que leen lecturas de muchos sensores (p. ej. `sensores_estado_edificio`) hacen un control de acceso al principio y leen como security definer (050).
 
 ## Convenciones de base de datos
 - Nombres en español, snake_case. PK `id uuid default gen_random_uuid()`; catálogos `smallint identity`.
@@ -69,6 +69,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (519 a 17/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D + 14 etiquetas 3D + 10 volúmenes + 10 clima + 6 valor de hoy + 17 suministros)
+npx supabase test db        # pruebas pgTAP (521 a 17/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D + 14 etiquetas 3D + 10 volúmenes + 10 clima + 6 valor de hoy + 19 suministros)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```

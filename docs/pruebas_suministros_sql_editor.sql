@@ -11,7 +11,7 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-select plan(17);
+select plan(19);
 
 insert into proveedores (id, codigo, nombre) values
   ('fc000000-0000-0000-0000-00000000000a', 'SA', 'Partner suministros A'),
@@ -149,6 +149,10 @@ select set_config('request.jwt.claims', json_build_object('sub', 'e9900000-0000-
 set local role authenticated;
 insert into resultados (t) select is(suministros_edificio('fc200000-0000-0000-0000-000000000001'), '[]'::jsonb,
   'Otro Partner no ve las fichas de los suministros del edificio');
+insert into resultados (t) select is((select count(*)::integer from sensores_estado_edificio('fc200000-0000-0000-0000-000000000001')), 0,
+  'Otro Partner no ve el estado de los sensores (050: security definer con control de acceso)');
+insert into resultados (t) select is((select count(*)::integer from consumo_mensual_suministro('fc800000-0000-0000-0000-000000000001')), 0,
+  'Ni el consumo mensual de sus suministros');
 reset role;
 
 do $$
@@ -157,8 +161,8 @@ begin
   select count(*), count(*) filter (where t like 'not ok%'),
          string_agg(split_part(t, E'\n', 1), E'\n' order by n) filter (where t like 'not ok%')
     into v_total, v_fallos, v_detalle from resultados;
-  if v_fallos = 0 and v_total = 17 then
-    raise exception 'RESULTADO: % de 17 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
+  if v_fallos = 0 and v_total = 19 then
+    raise exception 'RESULTADO: % de 19 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
     raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
   end if;
