@@ -137,7 +137,9 @@ begin
       ('AMB-P1', -23.8, -10.5), ('MED-P1', -11.9, -10.5),
       ('AMB-P2', -4.6, 2.4), ('MED-P2', -4.0, -10.0), ('AMB-P3', -18.0, -6.0), ('MED-P3', -4.0, -10.0),
       ('AMB-P4', -18.0, -6.0), ('MED-P4', -4.0, -10.0), ('AMB-P5', -18.0, -6.0), ('MED-P5', -4.0, -10.0),
-      ('MED-CUB', 3.5, 4.0), ('FV-PROD', 20.0, 4.0), ('GAS-CALDERA', -10.0, -6.0)),
+      ('MED-CUB', 3.5, 4.0), ('FV-PROD', 20.0, 4.0), ('GAS-CALDERA', -10.0, -6.0),
+      -- medidores generales del gas y del agua (docs/demo_torre_suministros.sql), en el punto de su contador
+      ('GAS-GEN', -10.0, -6.0), ('AGUA-GEN', -10.0, 4.0)),
   elementos as (
     select d.id as id_dispositivo, null::uuid as id_sensor, d.codigo
     from public.dispositivos d join public.recintos r on r.id = d.id_recinto

@@ -226,6 +226,19 @@ select 'c9000000-0000-0000-0000-00000000000a', 'c2000000-0000-0000-0000-00000000
 from magnitudes where codigo = 'ENERGIA_CONSUMIDA';
 insert into magnitudes_fuentes (id_magnitud_edificio, id_sensor)
 select 'c9000000-0000-0000-0000-00000000000a', id from sensores where codigo = 'CONT-01.energia_importada';
+-- Suministro eléctrico con su medidor general (048, D57): consumo, potencia y cos φ
+insert into sensores (id_dispositivo, id_recinto, id_familia, id_naturaleza, id_tratamiento, codigo, nombre, unidad)
+select d.id, d.id_recinto, f.id, n.id, t.id, 'CONT-01.fp', 'cos φ', '-'
+from dispositivos d, familias_sensor f, naturalezas_sensor n, tratamientos_sensor t
+where d.codigo = 'CONT-01' and f.codigo = 'FACTOR_POTENCIA' and n.codigo = 'INSTANTANEA' and t.codigo = 'PROMEDIO';
+update sensores s set id_parametro_medidor = pm.id
+from parametros_medidor pm
+where (s.codigo, pm.codigo) in (('CONT-01.energia_importada', 'ENERGIA_ACTIVA_IMPORTADA'),
+                                ('CONT-01.potencia_activa', 'POTENCIA_ACTIVA'), ('CONT-01.fp', 'FACTOR_POTENCIA'));
+insert into suministros (id, id_edificio, codigo, nombre, tipo)
+values ('c9100000-0000-0000-0000-00000000000a', 'c2000000-0000-0000-0000-00000000000a', 'RED', 'Red', 'ELECTRICIDAD');
+insert into suministros_dispositivos (id_suministro, id_dispositivo, medidor_general)
+select 'c9100000-0000-0000-0000-00000000000a', id, true from dispositivos where codigo = 'CONT-01';
 select ok((estado_parametrizacion_edificio('c2000000-0000-0000-0000-00000000000a') ->> 'completo')::boolean,
   'El edificio A cumple todos los requisitos bloqueantes');
 select lives_ok($$ select cerrar_parametrizacion('c2000000-0000-0000-0000-00000000000a') $$,

@@ -74,10 +74,14 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 | 1 | **Energía total consumida**: total y % frente al día comparable; electricidad de la red, gas y renovables con su energía, su **aporte al total** y su % frente al día comparable; **emisiones** totales y separadas en electricidad de la red y gas (las renovables no emiten) |
 | 2 | **Diagrama Sankey** (hoy, 7 o 30 días), compacto; al pulsarlo se amplía con el detalle por uso y cuadro |
 | 3 | **Ambiente por recinto**: temperatura, humedad y CO₂ del último valor. Colores de temperatura con la **eficiencia** y el **confort** de la temporada, configurables por edificio (por defecto, invierno 19 / 25 °C y verano 27 / 25 °C). Humedad 30–70 % verde |
-**Suministros de red:** potencia (con su % a la misma hora del día comparable) y factor de potencia; electricidad, gas y agua de hoy. El resto, por diseñar.
+**Suministros** (D57): una ficha desplegable por suministro (electricidad, gas, agua), una debajo de otra; la primera, abierta:
+- **medidor general**: sus parámetros en vivo (consumo de hoy, potencia, cos φ y los opcionales que mida: exportada, reactiva, aparente, tensiones, intensidades, frecuencia; presión del gas; caudal del agua). Cada uno abre su gráfica. Si falta el medidor o un parámetro obligatorio, aviso en rojo;
+- **consumo mensual**: barras de este año frente al anterior (electricidad y gas en kWh; agua en m³);
+- **contrato**: comercializadora, distribuidora, CUPS, nº de contrato o póliza, alta, tarifa, potencias contratadas P1–P6, contador de la compañía, energía verde y medidor general.
+La generación renovable va en Producción.
 **Producción renovable:** generación de hoy, parte consumida, cobertura y %. El resto, por diseñar.
 
-*Soporte:* `hoy_edificio` (023: consumos, curva, horario), `potencia_edificio` (033), `fuentes_hoy_edificio`, `ambiente_edificio` y `alarmas_edificio` (034), `sankey_energia` (024), `serie_magnitud` y `serie_sensor` (023, con semanas desde 034).
+*Soporte:* `suministros_edificio` y `consumo_mensual_suministro` (048), `hoy_edificio` (023: consumos, curva, horario), `potencia_edificio` (033), `fuentes_hoy_edificio`, `ambiente_edificio` y `alarmas_edificio` (034), `sankey_energia` (024), `serie_magnitud` y `serie_sensor` (023, con semanas desde 034).
 
 ## 3. 3D
 
@@ -91,6 +95,7 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 - **Pestaña Hoy** (D56): con «Todo el edificio», edificio al 40 % y solo las etiquetas de suministro (Electricidad de la red, Gas, Renovables, Agua) con el color del KPI, el consumo de hoy y la variación frente al día comparable; con una planta, esa planta opaca, las de debajo como referencia y todo lo de encima de su techo recortado, con todas sus etiquetas. El gas muestra m³ y kWh. Los contadores muestran el consumo de hoy, no la lectura acumulada.
 - **Sin modelo 3D** (D56): corte esquemático del edificio (franjas por planta, recintos como cajas, etiquetas por dispositivo) con la gráfica fija debajo.
 - **3D | Esquema** (D56): en los edificios con modelo, el mismo corte esquemático como vista alternativa, con la gráfica flotante.
+- **Pestaña Suministros** (D57): todo el edificio al 40 %, sin selector de planta, con una etiqueta por suministro en su medidor general: compacta (obligatorios) y, al pulsar la cabecera o abrir su ficha, desplegada con todos sus parámetros. En las demás pestañas, las etiquetas del medidor no llevan los parámetros opcionales.
 - **Pestaña Ambiente** (D55): edificio semitransparente, volúmenes de los recintos con el color del tramo de temperatura y leyenda de la temporada; en las etiquetas solo los sensores ambientales (temperatura, humedad y CO₂); bajo la leyenda, el clima exterior en grande (icono, temperatura, estado del cielo, humedad, viento, UV y lluvia, con la previsión al pulsar); fila «Exterior» en la tabla.
 - **Clima exterior** (D54): recuadro en la barra del visor (en la de sensores si no hay 3D) con el tiempo; al pulsarlo, próximas horas y días.
 
