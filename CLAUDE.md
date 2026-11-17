@@ -18,7 +18,7 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
   - `docs/configuracion-edificio.md` (alta guiada, edición, sustituciones, GLB, Excel, calendario);
   - `docs/edificios-existentes-historicos.md` (equipos existentes, importaciones por lotes, resúmenes antiguos, recálculo);
   - `docs/modelos-3d.md` (de Revit o Blender al visor: exportar, preparar con `herramientas/modelo3d` y publicar; los GLB nunca van al repositorio);
-  - `docs/demo_limpiar.sql`, `docs/demo_torre.sql`, `docs/demo_torre_modelo3d.sql` y `docs/demo_torre_suministros.sql` (edificio de demostración con los simuladores; el borrado físico solo se admite en edificios `DEMO-*`);
+  - `docs/demo_limpiar.sql`, `docs/demo_torre.sql`, `docs/demo_torre_modelo3d.sql`, `docs/demo_torre_suministros.sql` y `docs/demo_torre_historico_suministros.sql` (edificio de demostración con los simuladores; el borrado físico solo se admite en edificios `DEMO-*`);
   - `docs/usuarios-acceso.md` (altas, contraseña inicial, doble factor y recuperación de contraseña por email).
 - Si el código contradice esos documentos, PREGUNTAR antes de cambiar nada.
 
@@ -69,6 +69,6 @@ Jerarquía dentro de una instalación: **ADMIN (rol `ADMIN_SAAS`) → PARTNER (t
 ```powershell
 npx supabase start          # BD local (requiere Docker Desktop)
 npx supabase db reset       # recrea la BD local aplicando todas las migraciones
-npx supabase test db        # pruebas pgTAP (518 a 16/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D + 14 etiquetas 3D + 10 volúmenes + 10 clima + 6 valor de hoy + 16 suministros)
+npx supabase test db        # pruebas pgTAP (519 a 17/11/2026: 47 seguridad + 51 conectores + 24 KPIs + 22 página de edificio + 18 Sankey + 28 configuración + 22 históricos + 28 importación + 37 usuarios + 22 Sentilo/LoRaWAN + 8 API REST + 11 recuperación + 21 edición de usuarios + 25 motor + 6 potencia + 20 panel de edificio + 5 campana de alarmas + 12 temperaturas y emisiones + 29 cuadros y usos + 19 series de energía + 7 plantas del modelo 3D + 14 etiquetas 3D + 10 volúmenes + 10 clima + 6 valor de hoy + 17 suministros)
 npx supabase db push        # SOLO contra el proyecto enlazado de staging
 ```

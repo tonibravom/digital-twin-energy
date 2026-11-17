@@ -5,7 +5,7 @@
 begin;
 set search_path = public, extensions;
 
-select plan(16);
+select plan(17);
 
 insert into proveedores (id, codigo, nombre) values
   ('fc000000-0000-0000-0000-00000000000a', 'SA', 'Partner suministros A'),
@@ -119,6 +119,12 @@ select is((select round(consumo_kwh)::integer from consumo_mensual_suministro('f
   'El gas del mes se da también en kWh con la conversión del motor');
 select is((select count(*)::integer from consumo_mensual_suministro('fc800000-0000-0000-0000-000000000001')),
   12 + extract(month from now() at time zone 'Europe/Madrid')::integer, 'Meses del año pasado y de este hasta el actual');
+-- 049: el mes en que el contador empieza a medir se calcula desde su primera lectura
+insert into lecturas (id_sensor, fecha_hora, valor)
+select 'fc700000-0000-0000-0000-000000000001', ((meses.ini - interval '1 month' + interval '5 days') at time zone 'Europe/Madrid'), 900.0 from meses;
+select is((select consumo from consumo_mensual_suministro('fc800000-0000-0000-0000-000000000001') c, meses
+           where c.anio = extract(year from meses.ini - interval '1 month') and c.mes = extract(month from meses.ini - interval '1 month')), 100::float8,
+  'El primer mes con datos cuenta desde la primera lectura del contador (049)');
 
 -- 6. Al sustituir el sensor, el nuevo mide lo mismo
 create temp table sustituto as select sustituir_sensor('fc700000-0000-0000-0000-000000000003') as id;

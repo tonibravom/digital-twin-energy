@@ -359,6 +359,11 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - `filas_etiqueta_dispositivo()`: las filas de una etiqueta 3D sin los parámetros opcionales del medidor; `validar_etiqueta_3d()` la usa para la distancia mínima.
 - Demo: `docs/demo_torre_suministros.sql` (suministros de electricidad, gas y agua con su medidor general; el simulador añade reactiva, aparente, tensiones, intensidades, frecuencia, presión del gas y caudal del agua).
 
+## Migración 049 · Consumo mensual del primer mes (17/11/2026, D57)
+
+- `consumo_mensual_suministro()`: el mes en que el contador empieza a medir (sin lectura antes del cambio de mes) se calcula desde su primera lectura, en lugar de quedar vacío.
+- Demo: `docs/demo_torre_historico_suministros.sql` rellena los contadores de los medidores generales con una lectura diaria desde el 1 de enero del año pasado (hacia atrás desde la primera lectura real, con estacionalidad), por `procesar_lecturas` como histórico.
+
 ## Pendientes funcionales que debe cerrar el comprador
 
 Son decisiones de negocio que el código deja abiertas a propósito:

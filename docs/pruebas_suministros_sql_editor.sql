@@ -11,7 +11,7 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-select plan(16);
+select plan(17);
 
 insert into proveedores (id, codigo, nombre) values
   ('fc000000-0000-0000-0000-00000000000a', 'SA', 'Partner suministros A'),
@@ -125,6 +125,12 @@ insert into resultados (t) select is((select round(consumo_kwh)::integer from co
   'El gas del mes se da también en kWh con la conversión del motor');
 insert into resultados (t) select is((select count(*)::integer from consumo_mensual_suministro('fc800000-0000-0000-0000-000000000001')),
   12 + extract(month from now() at time zone 'Europe/Madrid')::integer, 'Meses del año pasado y de este hasta el actual');
+-- 049: el mes en que el contador empieza a medir se calcula desde su primera lectura
+insert into lecturas (id_sensor, fecha_hora, valor)
+select 'fc700000-0000-0000-0000-000000000001', ((meses.ini - interval '1 month' + interval '5 days') at time zone 'Europe/Madrid'), 900.0 from meses;
+insert into resultados (t) select is((select consumo from consumo_mensual_suministro('fc800000-0000-0000-0000-000000000001') c, meses
+           where c.anio = extract(year from meses.ini - interval '1 month') and c.mes = extract(month from meses.ini - interval '1 month')), 100::float8,
+  'El primer mes con datos cuenta desde la primera lectura del contador (049)');
 
 -- 6. Al sustituir el sensor, el nuevo mide lo mismo
 create temp table sustituto as select sustituir_sensor('fc700000-0000-0000-0000-000000000003') as id;
@@ -151,8 +157,8 @@ begin
   select count(*), count(*) filter (where t like 'not ok%'),
          string_agg(split_part(t, E'\n', 1), E'\n' order by n) filter (where t like 'not ok%')
     into v_total, v_fallos, v_detalle from resultados;
-  if v_fallos = 0 and v_total = 16 then
-    raise exception 'RESULTADO: % de 16 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
+  if v_fallos = 0 and v_total = 17 then
+    raise exception 'RESULTADO: % de 17 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
     raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:\n%', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
   end if;
