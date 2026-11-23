@@ -184,7 +184,9 @@ Implementado (D59, migración 053). Pestaña **Alarmas** del panel, ordenada por
 - sensores sin comunicación como **aviso** (si el edificio tiene la regla «Equipo sin comunicar», sale una sola vez);
 - **Configurar alarmas** (administrador y Partner): catálogo de reglas de la plataforma aplicables al edificio, con lo que falta para activarlas, nivel, rearme, umbrales, destinatarios del email y escalado (`reglas_alarma_edificio`, `activar_regla_alarma`, `desactivar_regla_alarma`, `usuarios_alarmas_edificio`);
 - el enlace de los emails (`/edificio/<id>?pestana=alarmas&alarma=<id>`) abre esta pestaña con la alarma resaltada; la campana lleva también aquí;
-- en el 3D, el punto del sensor queda en rojo mientras la alarma no esté cerrada (también resuelta).
+- en el 3D, el punto del sensor queda en rojo mientras la alarma no esté cerrada (también resuelta);
+- **pulsar una alarma** (o su línea 📍 sensor · recinto · planta) lleva el 3D a la planta del recinto, resalta la etiqueta del sensor con el nombre de la alarma y el punto latiendo, y abre su gráfica. Arriba del 3D, un cartel indica la alarma y dónde está (o que no tiene etiqueta en el 3D). Lo mismo al llegar desde el enlace del email (054);
+- en edificios `DEMO-*`, **Configurar alarmas → Probar en el edificio de demostración** simula una avería durante 30 min a 2 h para ver todo el tratamiento.
 - Pendiente: histórico filtrable por fechas, nivel y estado (irá con los informes).
 
 ## 6. Ficha

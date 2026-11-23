@@ -397,6 +397,13 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - Usuarios: `cerrar_alarma` solo en RESUELTA; `silenciar_alarma` (máximo 30 días, con motivo; `null` quita el silencio); `activar_regla_alarma`, `desactivar_regla_alarma`, `reglas_alarma_edificio`, `requisitos_regla_alarma` y `usuarios_alarmas_edificio` para la configuración. `alarmas_edificio` y `resumen_alarmas_usuario` incluyen las resueltas y no repiten un sensor sin comunicación que ya tiene su alarma.
 - Pruebas: `028_alarmas.test.sql` (38) y `docs/pruebas_alarmas_sql_editor.sql`.
 
+## Migración 054 · Ir a la alarma y averías simuladas en la demo (23/11/2026, D59)
+
+- `private.ventana_sensor`: el valor vigente al empezar la ventana también cuenta. Con datos cada 15 minutos, una regla de 5 minutos decide siempre y una alarma se resuelve en cuanto llega el dato normal.
+- `alarmas_edificio`: devuelve `id_recinto` y `planta`. En la web, pulsar una alarma (o llegar desde el email) lleva el 3D a su planta, resalta la etiqueta del sensor con el nombre de la alarma (punto latiendo) y abre su gráfica; arriba del 3D, un cartel dice qué alarma es y dónde está.
+- **Averías simuladas** (solo edificios `DEMO-*`): tabla `averias_simuladas` (RLS; sin escritura directa), `tipos_averia_simulada()`, `simular_averia(edificio, tipo, minutos)` (15–240 min, permiso MODIFICAR_ALARMAS), `terminar_averia(id)` y `averias_simuladas_activas()` (solo service_role, para el simulador). Tipos: corte eléctrico, fallo de fase, cos φ bajo, maxímetro, sin gas, presión de gas alta, sin agua, presión de agua alta y CO₂ alto. El simulador de la API envía los valores de la avería por el camino normal de las lecturas (`app/simulador/averias.py`). Se usan desde **Configurar alarmas → Probar en el edificio de demostración**. `demo_limpiar.sql` las borra.
+- Pruebas: `029_averias_simuladas.test.sql` (10) y `docs/pruebas_averias_sql_editor.sql`.
+
 ## Pendientes funcionales que debe cerrar el comprador
 
 Son decisiones de negocio que el código deja abiertas a propósito:

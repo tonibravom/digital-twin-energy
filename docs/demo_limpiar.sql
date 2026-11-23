@@ -54,6 +54,7 @@ begin
   delete from public.reglas_alarma_usuarios where id_regla_alarma = any (v_reglas);
   delete from public.reglas_alarma where id = any (v_reglas);
   delete from public.incidencias_comunicacion where id_sensor = any (v_sensores);
+  delete from public.averias_simuladas where id_edificio = v_edif;   -- 054
   delete from public.estado_comunicacion where id_sensor = any (v_sensores);
   delete from public.pruebas_lectura where id_sensor = any (v_sensores) or id_conexion = any (v_conexiones);
 
