@@ -63,7 +63,7 @@ Ejemplo: el lunes siguiente a un viernes festivo se compara con el jueves. Sin c
 
 - Solo cambia la zona izquierda al cambiar de pestaña.
 - **Gráfica (D47):** por defecto, la energía total de hoy frente al día comparable con las horas fuera de horario sombreadas. El desplegable, con buscador, ofrece todas las series de energía (KPI, usos y cuadros del Sankey), las demás magnitudes y todos los sensores. Pulsar un dato del panel (KPI, valores de ambiente, usos finales del Sankey ampliado, sensores, alarmas, pestañas) lo muestra en la gráfica y lo resalta. Energía en líneas (15 min, horas) o barras (días, semanas, meses). Selector de magnitud del edificio, periodo (hoy, ayer, 7 días, 30 días, 12 meses) y agrupación (15 min, hora, día, semana, mes). Al pulsar un sensor de la lista (o del 3D) se muestra su gráfica. Sustituye a la pestaña Históricos.
-- **Alarmas:** alarmas activas y sensores sin comunicación, por importancia. Sustituye a la pestaña Alarmas. El motor de alarmas (umbrales, fuera de horario…) es la siguiente fase.
+- **Alarmas:** alarmas abiertas y sensores sin comunicación, por estado e importancia, con Reconocer, Silenciar y Cerrar, y la configuración de las reglas (§5, D59).
 - **Ficha** y **Configuración** son botones de la cabecera.
 - En pantallas de menos de 1400 px: dos columnas y las alarmas debajo; en tablet y móvil, todo apilado.
 
@@ -177,10 +177,15 @@ Biomasa ───────┘                           └─► Otros usos
 
 ## 5. Alarmas
 
-- **Activas:** nivel, regla, sensor o magnitud, recinto, desde cuándo, valor que la disparó. Botones **Reconocer** y **Cerrar** con comentario (`reconocer_alarma`, `cerrar_alarma`), según permisos.
-- **Histórico** filtrable por fechas, nivel y estado.
-- **Incidencias de comunicación**, separadas de las alarmas (maestro §5): sensor, inicio, fin y duración.
-- **Reglas** del edificio (Partner): crear, editar y desactivar.
+Implementado (D59, migración 053). Pestaña **Alarmas** del panel, ordenada por estado e importancia:
+- cada alarma: nivel (**Muy crítica**, **Crítica**, **Aviso**), regla, detalle, sensor y recinto, desde cuándo, estado y quién la ha reconocido, silencio y comentario. Pulsarla lleva el 3D al sensor y abre su gráfica;
+- **estados**: *Activa* (causa presente, sin atender) → *Reconocida* (alguien se ocupa) → *Resuelta* (la causa ha desaparecido) → *Cerrada*. **Cerrar solo es posible en Resuelta**: mientras la causa siga, se reconoce o se **silencia** hasta una fecha (máximo 30 días) con un motivo. Con rearme automático la alarma se cierra sola. Si la causa vuelve antes de una hora, se reabre la misma;
+- botones según permisos (`reconocer_alarma`, `silenciar_alarma`, `cerrar_alarma`): administrador, Partner y cliente avanzado; los demás, solo ver;
+- sensores sin comunicación como **aviso** (si el edificio tiene la regla «Equipo sin comunicar», sale una sola vez);
+- **Configurar alarmas** (administrador y Partner): catálogo de reglas de la plataforma aplicables al edificio, con lo que falta para activarlas, nivel, rearme, umbrales, destinatarios del email y escalado (`reglas_alarma_edificio`, `activar_regla_alarma`, `desactivar_regla_alarma`, `usuarios_alarmas_edificio`);
+- el enlace de los emails (`/edificio/<id>?pestana=alarmas&alarma=<id>`) abre esta pestaña con la alarma resaltada; la campana lleva también aquí;
+- en el 3D, el punto del sensor queda en rojo mientras la alarma no esté cerrada (también resuelta).
+- Pendiente: histórico filtrable por fechas, nivel y estado (irá con los informes).
 
 ## 6. Ficha
 

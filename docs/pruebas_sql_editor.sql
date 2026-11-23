@@ -263,8 +263,8 @@ insert into resultados (t) select lives_ok(
      values ('a2000000-0000-0000-0000-000000000001', 'S1', 'Sótano', -1) $$,
   'Se admiten sótanos (nivel negativo)');
 insert into resultados (t) select throws_ok(
-  $$ insert into eventos_alarma (id_regla_alarma) values ('b9000000-0000-0000-0000-000000000001') $$,
-  '23505', null, 'No puede haber dos eventos abiertos de la misma regla y recinto');
+  $$ insert into eventos_alarma (id_regla_alarma, id_sensor) values ('b9000000-0000-0000-0000-000000000001', 'b7000000-0000-0000-0000-000000000001') $$,
+  '23505', null, 'No puede haber dos eventos abiertos de la misma regla, recinto y sensor');
 update dispositivos set id_recinto = 'a4000000-0000-0000-0000-000000000002'
 where id = 'a6000000-0000-0000-0000-000000000001';
 insert into resultados (t) select is((select id_recinto from sensores where id = 'a7000000-0000-0000-0000-000000000001'),

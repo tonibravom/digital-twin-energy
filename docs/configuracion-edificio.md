@@ -18,7 +18,7 @@ Solo la ven el Partner y el administrador. La pestaña se compone de:
 | 6 | **Magnitudes y usos** | A qué magnitud alimenta cada sensor, su **uso final** y el **reparto** de lo no medido | `magnitudes_fuentes`, `repartos_uso_edificio` (024) |
 | 7 | **Modelos 3D** | Modelo general y uno por recinto, con versiones. Tabla de **coordenadas X, Y, Z** por sensor o dispositivo y vista previa | `modelos_3d`, `ubicaciones_3d` |
 | 8 | **Calendario** | Enlace a la pestaña **Ficha** (ver apartado 6) | `calendario_edificio` (025) |
-| 9 | **Alarmas** | Reglas del edificio | `reglas_alarma` |
+| 9 | **Alarmas** | Reglas de la plataforma (catálogo de 21, D59) que el Partner activa **de acuerdo con el cliente**: nivel (muy crítica = email inmediato; crítica = resumen diario; aviso = informes), umbrales, rearme, destinatarios y escalado. Cada regla dice qué le falta (sensor del medidor, potencias contratadas, presión de operación del gas, horario, potencia pico…). Se hace desde la pestaña Alarmas del panel (**Configurar alarmas**). Las reglas libres (umbral sobre un sensor o magnitud) siguen disponibles | `tipos_regla_alarma`, `reglas_alarma`, `reglas_alarma_usuarios` (053) |
 | 10 | **Modalidad y usuarios** | BASIC / PRO / PREMIUM, complemento 3D y usuarios del cliente con acceso | `modalidades_edificio`, `usuarios_edificios` |
 
 ## 2. Alta de un edificio nuevo (modo guiado)

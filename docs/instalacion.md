@@ -99,6 +99,13 @@ Variables de entorno de la API (nunca en el código ni en el repositorio):
 
 Con Brevo: remitente con **dominio propio** autenticado (DKIM y DMARC), clave *Restricted* con solo *Transactional emails: All* copiada entera (`xkeysib-…`) y el bloqueo de *IP autorizadas* desactivado para claves de API. Detalle en el README de la API.
 
+**Emails de alarmas (D59).** Las muy críticas se envían al momento y las críticas en un resumen diario. Para que lleguen a la bandeja de entrada y no a spam (en muchas empresas los emails de dominios sin autenticar se pierden):
+- remitente de un **dominio propio** (no Gmail ni Outlook), con los registros DNS que da el proveedor: **SPF** (`v=spf1 include:… ~all`), **DKIM** (clave pública del proveedor) y **DMARC** (empezar con `v=DMARC1; p=none; rua=mailto:…` y, tras comprobar unas semanas, pasar a `p=quarantine`);
+- `WEB_URL` configurada: cada email lleva el enlace «Reconocer en la plataforma»;
+- Vault con `api_url` y `api_tareas_secreto` (los mismos de la tarea periódica, ver `docs/conectores.md`): con ellos Supabase avisa a la API en cuanto hay un email; sin ellos, los envía el ciclo cada 15 minutos;
+- pedir a los destinatarios que añadan el remitente a sus contactos y, en empresas, a la lista de remitentes seguros;
+- prueba: activar una regla muy crítica en un edificio de pruebas y comprobar que llega (y el resumen diario a la mañana siguiente).
+
 La clave `service_role` salta todas las protecciones de la base de datos. Solo debe existir en las variables de entorno del servidor de la API.
 
 ## 7. Desplegar el frontend
@@ -111,7 +118,7 @@ El frontend solo necesita `SUPABASE_URL`, la clave `anon`/*publishable* y la URL
 - [ ] El registro público está desactivado. Prueba: intentar registrarse desde la pantalla de login debe fallar.
 - [ ] El primer administrador inicia sesión y crea un Partner de prueba.
 - [ ] Un usuario del Partner de prueba solo ve los clientes y edificios de ese Partner.
-- [ ] Las tareas `mantenimiento_datos` y `motor_15min` aparecen en `cron.job`, y `motor_15min` termina bien en `cron.job_run_details`.
+- [ ] Las tareas `mantenimiento_datos`, `motor_15min`, `motor_alarmas_5min` y `resumen_alarmas_diario` aparecen en `cron.job`, y terminan bien en `cron.job_run_details`.
 - [ ] Se sube un GLB de prueba: primero el registro en `modelos_3d` y después el archivo en el bucket `modelos-3d`.
 - [ ] Las copias de seguridad están activas (*Database > Backups*).
 - [ ] `npx supabase test db` pasa en local o en staging.
