@@ -4,7 +4,7 @@
 begin;
 set search_path = public, extensions;
 
-select plan(16);
+select plan(18);
 
 insert into proveedores (id, codigo, nombre) values
   ('fd000000-0000-0000-0000-00000000000a', 'INA', 'Partner alarmas A'),
@@ -102,6 +102,8 @@ select is((select (datos->'energia'->'actual'->>'energia')::numeric from informe
 select is((select (datos->'energia'->'actual'->>'agua')::numeric from informes where tipo = 'MENSUAL'), 62.00, 'Agua del mes');
 select is((select (datos->'energia'->'anio_anterior'->>'energia')::numeric from informes where tipo = 'MENSUAL'), 2480.0, 'Mismo mes del año anterior');
 select is((select jsonb_array_length(datos->'diario') from informes where tipo = 'MENSUAL'), 31, 'Un punto por día');
+select is((select datos->'diario'->0->>'fecha' from informes where tipo = 'MENSUAL'), '2026-10-01', 'Con la fecha sin hora (057)');
+select is((select (datos->'energia'->'actual'->>'tco2')::numeric from informes where tipo = 'MENSUAL'), 0.567, 'Emisiones con el factor de la electricidad (057)');
 select is((select datos->'marca'->'partner'->>'nombre' from informes where tipo = 'MENSUAL'), 'Partner alarmas A', 'Lleva la marca del Partner');
 select lives_ok($$ select guardar_destinatarios_informes('fd200000-0000-0000-0000-000000000001',
                     '{fd900000-0000-0000-0000-000000000001}', '{fd900000-0000-0000-0000-000000000001,fd900000-0000-0000-0000-000000000002}') $$,

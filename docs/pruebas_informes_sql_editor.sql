@@ -10,7 +10,7 @@ set search_path = public, extensions;
 create temp table resultados (n serial, t text);
 grant all on resultados to public;
 grant all on sequence resultados_n_seq to public;
-select plan(16);
+select plan(18);
 
 insert into proveedores (id, codigo, nombre) values
   ('fd000000-0000-0000-0000-00000000000a', 'INA', 'Partner alarmas A'),
@@ -108,6 +108,8 @@ insert into resultados (t) select is((select (datos->'energia'->'actual'->>'ener
 insert into resultados (t) select is((select (datos->'energia'->'actual'->>'agua')::numeric from informes where tipo = 'MENSUAL'), 62.00, 'Agua del mes');
 insert into resultados (t) select is((select (datos->'energia'->'anio_anterior'->>'energia')::numeric from informes where tipo = 'MENSUAL'), 2480.0, 'Mismo mes del año anterior');
 insert into resultados (t) select is((select jsonb_array_length(datos->'diario') from informes where tipo = 'MENSUAL'), 31, 'Un punto por día');
+insert into resultados (t) select is((select datos->'diario'->0->>'fecha' from informes where tipo = 'MENSUAL'), '2026-10-01', 'Con la fecha sin hora (057)');
+insert into resultados (t) select is((select (datos->'energia'->'actual'->>'tco2')::numeric from informes where tipo = 'MENSUAL'), 0.567, 'Emisiones con el factor de la electricidad (057)');
 insert into resultados (t) select is((select datos->'marca'->'partner'->>'nombre' from informes where tipo = 'MENSUAL'), 'Partner alarmas A', 'Lleva la marca del Partner');
 insert into resultados (t) select lives_ok($$ select guardar_destinatarios_informes('fd200000-0000-0000-0000-000000000001',
                     '{fd900000-0000-0000-0000-000000000001}', '{fd900000-0000-0000-0000-000000000001,fd900000-0000-0000-0000-000000000002}') $$,
@@ -141,8 +143,8 @@ begin
 ', 1), E'
 ' order by n) filter (where t like 'not ok%')
     into v_total, v_fallos, v_detalle from resultados;
-  if v_fallos = 0 and v_total = 16 then
-    raise exception 'RESULTADO: % de 16 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
+  if v_fallos = 0 and v_total = 18 then
+    raise exception 'RESULTADO: % de 18 pruebas OK. Todo correcto (los datos de prueba se han deshecho).', v_total;
   else
     raise exception E'RESULTADO: % pruebas ejecutadas, % FALLAN:
 %', v_total, v_fallos, coalesce(v_detalle, '(faltan pruebas)');
