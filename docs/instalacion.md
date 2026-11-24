@@ -106,6 +106,8 @@ Con Brevo: remitente con **dominio propio** autenticado (DKIM y DMARC), clave *R
 - pedir a los destinatarios que añadan el remitente a sus contactos y, en empresas, a la lista de remitentes seguros;
 - prueba: activar una regla muy crítica en un edificio de pruebas y comprobar que llega (y el resumen diario a la mañana siguiente).
 
+**Informes (D61).** Ponga el nombre de su plataforma en `parametros_saas` (código `NOMBRE_PLATAFORMA`); sale en los informes y sus emails junto al logo de cada Partner (bucket público `logos`, lo suben el administrador de la plataforma o el del Partner desde el edificio → Informes).
+
 La clave `service_role` salta todas las protecciones de la base de datos. Solo debe existir en las variables de entorno del servidor de la API.
 
 ## 7. Desplegar el frontend
@@ -118,7 +120,7 @@ El frontend solo necesita `SUPABASE_URL`, la clave `anon`/*publishable* y la URL
 - [ ] El registro público está desactivado. Prueba: intentar registrarse desde la pantalla de login debe fallar.
 - [ ] El primer administrador inicia sesión y crea un Partner de prueba.
 - [ ] Un usuario del Partner de prueba solo ve los clientes y edificios de ese Partner.
-- [ ] Las tareas `mantenimiento_datos`, `motor_15min`, `motor_alarmas_5min` y `resumen_alarmas_diario` aparecen en `cron.job`, y terminan bien en `cron.job_run_details`.
+- [ ] Las tareas `mantenimiento_datos`, `motor_15min`, `motor_alarmas_5min`, `resumen_alarmas_diario` e `informes_diario` aparecen en `cron.job`, y terminan bien en `cron.job_run_details`.
 - [ ] Se sube un GLB de prueba: primero el registro en `modelos_3d` y después el archivo en el bucket `modelos-3d`.
 - [ ] Las copias de seguridad están activas (*Database > Backups*).
 - [ ] `npx supabase test db` pasa en local o en staging.

@@ -232,3 +232,11 @@ Incluye la **lista de comprobación** y el botón **"Cerrar parametrización"**.
 | Cálculo de `valores_magnitud` y `resumenes_diarios` (motor) | Hecho (032) |
 | Contenido de Análisis energético y predicción | Posterior |
 | Mapa de calor de recintos en el 3D (colorear un recinto por su consumo o temperatura) | Posterior; requiere identificar cada recinto dentro del GLB |
+
+
+## Informes (D61, migración 056)
+Botón **Informes** en la cabecera del edificio:
+- lista de informes semanales (cada lunes, semana anterior) y mensuales (cada día 1, mes anterior), del más reciente al más antiguo; cada uno se abre en su página (`/edificio/<id>/informe/<id>`), sin menús, con **Descargar PDF** (A4);
+- **Partner**: «Generar el de la semana pasada / del mes pasado» (o volver a generarlo), «Enviar por email» y **quién los recibe** (semanal y mensual por persona);
+- **administrador de la plataforma o del Partner**: el **logo del Partner**, que sale en los informes y sus emails junto al nombre de la plataforma (`NOMBRE_PLATAFORMA`).
+Contenido: resumen (energía, emisiones, renovable, agua y fuera de horario, con el periodo anterior y, en el mensual, el mismo mes del año pasado), consumo por día y por suministro, producción renovable, ambiente por recinto en horario de uso (mensual), alarmas y avisos (por nivel y regla, tiempos medios hasta reconocer y resolver, muy críticas, sin cerrar, avisos) y calidad de los datos.
