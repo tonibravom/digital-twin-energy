@@ -60,6 +60,7 @@ begin
   delete from public.notificaciones where motivo in ('INFORME_SEMANAL', 'INFORME_MENSUAL') and datos->>'id_edificio' = v_edif::text;   -- 056
   delete from public.informes where id_edificio = v_edif;
   delete from public.informes_destinatarios where id_edificio = v_edif;
+  delete from public.comparativas where id_edificio = v_edif;   -- 059
   delete from public.estado_comunicacion where id_sensor = any (v_sensores);
   delete from public.pruebas_lectura where id_sensor = any (v_sensores) or id_conexion = any (v_conexiones);
 

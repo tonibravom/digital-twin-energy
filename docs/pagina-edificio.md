@@ -240,3 +240,11 @@ Botón **Informes** en la cabecera del edificio:
 - **Partner**: «Generar el de la semana pasada / del mes pasado» (o volver a generarlo), «Enviar por email» y **quién los recibe** (semanal y mensual por persona);
 - **administrador de la plataforma o del Partner**: el **logo del Partner**, que sale en los informes y sus emails junto al nombre de la plataforma (`NOMBRE_PLATAFORMA`).
 Contenido: resumen (energía, emisiones, renovable, agua y fuera de horario, con el periodo anterior y, en el mensual, el mismo mes del año pasado), consumo por día y por suministro, producción renovable, ambiente por recinto en horario de uso (mensual), alarmas y avisos (por nivel y regla, tiempos medios hasta reconocer y resolver, muy críticas, sin cerrar, avisos) y calidad de los datos.
+
+## Históricos (D62, migración 059)
+Pestaña **Históricos**: el menú izquierdo es el selector y la gráfica, con su tabla, ocupa el sitio del 3D (el 3D sigue cargado y vuelve al cambiar de pestaña).
+- **Comparar valores**: uno o dos datos (series de energía, magnitudes o sensores) **de la misma unidad**; los que no se pueden comparar no salen en la lista. Periodo: hoy, ayer, 7 o 30 días, este mes, mes pasado, 12 meses, este año, año pasado o entre fechas.
+- **Comparar periodos**: un dato en hasta 4 periodos del mismo tamaño (día, semana, mes o año), alineados por su posición (mes 1…12, día 1…31, lunes…domingo). Superpuestos o uno por periodo (2×2, misma escala).
+- **Agrupación** de 15 min a año (las que no se pueden usar con el periodo salen desactivadas) y **líneas o barras**. Contadores: suma de cada intervalo y total. Valores instantáneos: el valor de cada 15 min o la media del intervalo; la tabla da media, mínimo y máximo.
+- Leyenda con el nombre completo (dato, planta o recinto, unidad y periodo); **Descargar PDF** (A4 horizontal, solo la gráfica, la tabla y el edificio) y **Descargar a Excel**.
+- **Comparativas guardadas**: guardar con nombre (visibles para todos los usuarios del edificio o solo para mí), abrir, actualizar y quitar.
