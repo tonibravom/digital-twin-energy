@@ -404,6 +404,14 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - **Averías simuladas** (solo edificios `DEMO-*`): tabla `averias_simuladas` (RLS; sin escritura directa), `tipos_averia_simulada()`, `simular_averia(edificio, tipo, minutos)` (15–240 min, permiso MODIFICAR_ALARMAS), `terminar_averia(id)` y `averias_simuladas_activas()` (solo service_role, para el simulador). Tipos: corte eléctrico, fallo de fase, cos φ bajo, maxímetro, sin gas, presión de gas alta, sin agua, presión de agua alta y CO₂ alto. El simulador de la API envía los valores de la avería por el camino normal de las lecturas (`app/simulador/averias.py`). Se usan desde **Configurar alarmas → Probar en el edificio de demostración**. `demo_limpiar.sql` las borra.
 - Pruebas: `029_averias_simuladas.test.sql` (10) y `docs/pruebas_averias_sql_editor.sql`.
 
+## Migración 055 · Histórico de alarmas (24/11/2026, D59)
+
+- `eventos_alarma_acciones`: cronología de cada alarma (se abre, email enviado o no, escalada, reconocida, silenciada, silencio quitado o terminado, vuelve la causa, resuelta, reabierta, cerrada o cerrada sola), con fecha, persona (vacía = la plataforma) y detalle. La escriben triggers sobre `eventos_alarma` y `notificaciones`; no tiene políticas de escritura y nunca se borra. Las alarmas anteriores se completan con lo que ya guardaban.
+- `historico_alarmas(edificio, desde, hasta, nivel, estado, texto, límite)`: alarmas e incidencias de comunicación de la más reciente a la más antigua, con duración, minutos hasta reconocerla, quién la reconoció y cerró, comentario, reaperturas, silencios y emails. `cronologia_alarma(id)`: sus pasos.
+- Web: pestaña Alarmas → **Abiertas | Histórico**, con filtros, la cronología de cada alarma, «Descargar a Excel» (CSV) y, al pulsar 📍, el 3D en su planta y la gráfica del sensor de esos días con la franja de la alarma en rojo. El 3D de la pestaña Alarmas es el mismo que el de Hoy (edificio completo, plantas y recintos).
+- Informe mensual (siguiente): resumen de alarmas por nivel y regla, tiempo medio hasta reconocer y hasta resolver, muy críticas del mes y abiertas a fin de mes.
+- Pruebas: `030_historico_alarmas.test.sql` (12) y `docs/pruebas_historico_alarmas_sql_editor.sql`.
+
 ## Pendientes funcionales que debe cerrar el comprador
 
 Son decisiones de negocio que el código deja abiertas a propósito:

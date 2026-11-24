@@ -187,7 +187,8 @@ Implementado (D59, migración 053). Pestaña **Alarmas** del panel, ordenada por
 - en el 3D, el punto del sensor queda en rojo mientras la alarma no esté cerrada (también resuelta);
 - **pulsar una alarma** (o su línea 📍 sensor · recinto · planta) lleva el 3D a la planta del recinto, resalta la etiqueta del sensor con el nombre de la alarma y el punto latiendo, y abre su gráfica. Arriba del 3D, un cartel indica la alarma y dónde está (o que no tiene etiqueta en el 3D). Lo mismo al llegar desde el enlace del email (054);
 - en edificios `DEMO-*`, **Configurar alarmas → Probar en el edificio de demostración** simula una avería durante 30 min a 2 h para ver todo el tratamiento.
-- Pendiente: histórico filtrable por fechas, nivel y estado (irá con los informes).
+- **Histórico** (055): selector **Abiertas | Histórico** arriba de la pestaña. De la más reciente a la más antigua, con filtros de periodo, nivel y estado y buscador; cada alarma con su duración, tiempo hasta reconocerla, quién la cerró y con qué comentario. Al pulsarla se despliega su **cronología** (cada paso con hora y persona). 📍 lleva el 3D a su planta y abre la gráfica del sensor de esos días con la franja de la alarma en rojo. **Descargar a Excel** baja la lista filtrada;
+- el 3D de la pestaña Alarmas es el mismo que el de Hoy: edificio completo con los suministros, y por plantas y recintos todas sus etiquetas.
 
 ## 6. Ficha
 

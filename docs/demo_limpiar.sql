@@ -48,6 +48,8 @@ begin
   delete from public.notificaciones where id_sensor = any (v_sensores)
      or id_evento_alarma in (select id from public.eventos_alarma where id_regla_alarma = any (v_reglas) or id_sensor = any (v_sensores))
      or id_incidencia_comunicacion in (select id from public.incidencias_comunicacion where id_sensor = any (v_sensores));
+  delete from public.eventos_alarma_acciones where id_evento_alarma in (select id from public.eventos_alarma   -- 055
+     where id_regla_alarma = any (v_reglas) or id_sensor = any (v_sensores) or id_magnitud_edificio = any (v_me) or id_recinto = any (v_recintos));
   delete from public.eventos_alarma where id_regla_alarma = any (v_reglas) or id_sensor = any (v_sensores)
      or id_magnitud_edificio = any (v_me) or id_recinto = any (v_recintos);
   delete from public.reglas_alarma_recintos where id_regla_alarma = any (v_reglas) or id_recinto = any (v_recintos);
