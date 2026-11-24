@@ -4,7 +4,7 @@
 begin;
 set search_path = public, extensions;
 
-select plan(18);
+select plan(20);
 
 insert into proveedores (id, codigo, nombre) values
   ('fd000000-0000-0000-0000-00000000000a', 'INA', 'Partner alarmas A'),
@@ -88,6 +88,14 @@ insert into resumenes_diarios (id_edificio, fecha, indicador, valor, completo, o
 select 'fd200000-0000-0000-0000-000000000001', d::date, 'CONSUMO_ELECTRICIDAD', 80.0, true, 'MOTOR'
 from generate_series('2025-10-01'::date, '2025-10-31'::date, interval '1 day') d;
 
+-- Septiembre (mes anterior) a 50 kWh/día y el 31 de agosto a 999: el «mes anterior» es septiembre (058)
+insert into resumenes_diarios (id_edificio, fecha, indicador, valor, completo, origen)
+select 'fd200000-0000-0000-0000-000000000001', d::date, 'CONSUMO_ELECTRICIDAD', case when d::date = '2026-08-31' then 999.0 else 50.0 end, true, 'MOTOR'
+from generate_series('2026-08-31'::date, '2026-09-30'::date, interval '1 day') d;
+-- Tres sensores dejan de comunicar a la vez: un corte general (058)
+insert into incidencias_comunicacion (id_sensor, fecha_inicio, fecha_fin, estado)
+select id, '2026-10-21 10:00+00', '2026-10-21 10:31+00', 'CERRADA' from sensores where id::text like 'fd7%';
+
 -- 1. Generar (Partner A) y aislamiento (Partner B)
 select pg_temp.login('e9d00000-0000-0000-0000-000000000003');
 set local role authenticated;
@@ -105,6 +113,9 @@ select is((select jsonb_array_length(datos->'diario') from informes where tipo =
 select is((select datos->'diario'->0->>'fecha' from informes where tipo = 'MENSUAL'), '2026-10-01', 'Con la fecha sin hora (057)');
 select is((select (datos->'energia'->'actual'->>'tco2')::numeric from informes where tipo = 'MENSUAL'), 0.567, 'Emisiones con el factor de la electricidad (057)');
 select is((select datos->'marca'->'partner'->>'nombre' from informes where tipo = 'MENSUAL'), 'Partner alarmas A', 'Lleva la marca del Partner');
+select is((select (datos->'energia'->'anterior'->>'energia')::numeric from informes where tipo = 'MENSUAL'), 1500.0, 'El anterior es el mes natural anterior (058)');
+select is((select x->>'detalle' from informes, jsonb_array_elements(datos->'alarmas'->'lista_avisos') x where tipo = 'MENSUAL'),
+  '3 sensores a la vez (pasarela, red o servidor)', 'Los cortes simultáneos salen en una línea (058)');
 select lives_ok($$ select guardar_destinatarios_informes('fd200000-0000-0000-0000-000000000001',
                     '{fd900000-0000-0000-0000-000000000001}', '{fd900000-0000-0000-0000-000000000001,fd900000-0000-0000-0000-000000000002}') $$,
   'El Partner A elige los destinatarios');

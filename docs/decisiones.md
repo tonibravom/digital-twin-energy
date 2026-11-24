@@ -420,8 +420,9 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - `preparar_informes()` (pg_cron `informes_diario`, 5:30 UTC): los lunes el semanal y el día 1 el mensual de cada edificio con datos, y su email (`notificaciones` tipo INFORME, motivo INFORME_SEMANAL / INFORME_MENSUAL; los envía la API). `generar_informe` y `enviar_informe` (Partner, MODIFICAR_EDIFICIO), `destinatarios_informes` y `guardar_destinatarios_informes`.
 - Marca: `parametros_saas.NOMBRE_PLATAFORMA`, `proveedores.logo_ruta` y bucket público `logos` (`proveedores/<id>/logo.<ext>`; escriben el administrador de la plataforma y el del Partner; `fijar_logo_partner`).
 - Web: botón **Informes** en el edificio (lista, generar el último periodo, enviar, destinatarios y logo) y página `/edificio/<id>/informe/<id>` con **Descargar PDF** (impresión A4 del navegador).
-- Pruebas: `031_informes.test.sql` (18) y `docs/pruebas_informes_sql_editor.sql`.
+- Pruebas: `031_informes.test.sql` (20) y `docs/pruebas_informes_sql_editor.sql`.
 - **057** (correcciones): factor de CO₂ de las emisiones, fecha sin hora en el consumo por día (la gráfica no se dibujaba) y calidad de datos de sensores con lecturas importadas anteriores a su alta. Los informes ya generados se corrigen volviéndolos a generar.
+- **058** (revisión con los informes reales de la demo): en el mensual, el periodo anterior es el mes natural anterior; con datos diarios (históricos importados) no se calcula el consumo fuera de horario y se indica; los sensores con una lectura al día se miden por días con datos; si 3 o más sensores dejan de comunicar en el mismo cuarto de hora, sale una sola línea «Corte de comunicación general».
 
 ## Pendientes funcionales que debe cerrar el comprador
 
