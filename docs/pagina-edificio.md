@@ -248,3 +248,11 @@ Pestaña **Históricos**: el menú izquierdo es el selector y la gráfica, con s
 - **Agrupación** de 15 min a año (las que no se pueden usar con el periodo salen desactivadas) y **líneas o barras**. Contadores: suma de cada intervalo y total. Valores instantáneos: el valor de cada 15 min o la media del intervalo; la tabla da media, mínimo y máximo.
 - Leyenda con el nombre completo (dato, planta o recinto, unidad y periodo); **Descargar PDF** (A4 horizontal, solo la gráfica, la tabla y el edificio) y **Descargar a Excel**.
 - **Comparativas guardadas**: guardar con nombre (visibles para todos los usuarios del edificio o solo para mí), abrir, actualizar y quitar.
+
+## Peticiones de servicio, PDS (D63, migración 060)
+
+- Botón **PDS** en la cabecera: registro de las peticiones del edificio (número, prioridad, tipo, fecha, quién la creó y a quién se envió, con el estado del email), descarga de sus archivos y reenvío. El Partner configura aquí los **destinos** del edificio (nombre y email de entrada de peticiones del mantenedor).
+- **Nueva PDS**: tipo (correctivo, preventivo, legal o mejora), prioridad (emergencia, urgente, normal o programable), título, descripción, recinto, equipo o sensor, teléfono de contacto y hasta 5 fotos. Desde una alarma («Crear PDS para el mantenedor») se rellena sola: la prioridad sale del nivel (muy crítica → emergencia, crítica → urgente, aviso → normal) y el PDF incluye la gráfica del sensor con la banda de la alarma y su cronología.
+- Al crear se generan el PDF, el JSON y el CSV (formato pds/1.0, `docs/pds-formato.md`). Se pueden ver o imprimir, descargar y **enviar por email** a uno o varios destinos con los archivos adjuntos.
+- La plataforma **no hace el seguimiento**: el estado y la ejecución los lleva la herramienta del mantenedor.
+- Permisos: crea y envía quien puede actuar sobre las alarmas (RECONOCER_ALARMAS); ve el registro quien ve las alarmas; los destinos, quien configura las alarmas (MODIFICAR_ALARMAS).

@@ -45,6 +45,12 @@ begin
   where id_conexion = any (v_conexiones) or id_recinto = any (v_recintos);
 
   -- Alarmas y comunicación
+  -- 060: peticiones de servicio (antes que las alarmas y notificaciones a las que apuntan)
+  with envios as (delete from public.pds_envios where id_pds in (select id from public.pds where id_edificio = v_edif) returning id_notificacion)
+  delete from public.notificaciones where id in (select id_notificacion from envios);
+  delete from public.pds where id_edificio = v_edif;
+  delete from public.pds_destinos where id_edificio = v_edif;
+  -- Los archivos de las PDS (bucket «pds», carpeta edificios/<id>/pds) se borran desde Storage, como los GLB
   delete from public.notificaciones where id_sensor = any (v_sensores)
      or id_evento_alarma in (select id from public.eventos_alarma where id_regla_alarma = any (v_reglas) or id_sensor = any (v_sensores))
      or id_incidencia_comunicacion in (select id from public.incidencias_comunicacion where id_sensor = any (v_sensores));
