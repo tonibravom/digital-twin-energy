@@ -431,6 +431,7 @@ Este archivo complementa el *Documento maestro v2.0 (15/10/2026)*. Cuando ambos 
 - Las gráficas usan las funciones que ya existían (`serie_energia`, `serie_magnitud`, `serie_sensor`); la web no suma lecturas.
 - Web: `componentes/historicos/` (`SelectorHistorico`, `VistaHistorico`, `periodos.js`) y `servicios/series.js`.
 - Pruebas: `032_comparativas.test.sql` (9) y `docs/pruebas_comparativas_sql_editor.sql`.
+- **Calendario de fechas** (24/11/2026): en la gráfica del panel (HOY y demás pestañas) y en «Comparar valores» el periodo se elige con un calendario de dos meses, como al reservar un hotel (primer y último día; atajos Hoy, Últimos 7 días, Este mes y Este año). «Comparar periodos» no cambia. Componente `SelectorFechas.vue`.
 
 ## Pendientes funcionales que debe cerrar el comprador
 

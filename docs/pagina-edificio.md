@@ -243,7 +243,7 @@ Contenido: resumen (energía, emisiones, renovable, agua y fuera de horario, con
 
 ## Históricos (D62, migración 059)
 Pestaña **Históricos**: el menú izquierdo es el selector y la gráfica, con su tabla, ocupa el sitio del 3D (el 3D sigue cargado y vuelve al cambiar de pestaña).
-- **Comparar valores**: uno o dos datos (series de energía, magnitudes o sensores) **de la misma unidad**; los que no se pueden comparar no salen en la lista. Periodo: hoy, ayer, 7 o 30 días, este mes, mes pasado, 12 meses, este año, año pasado o entre fechas.
+- **Comparar valores**: uno o dos datos (series de energía, magnitudes o sensores) **de la misma unidad**; los que no se pueden comparar no salen en la lista. Periodo: con el **calendario** (primer y último día, como al reservar un hotel; atajos Hoy, Últimos 7 días, Este mes y Este año). La gráfica del panel (HOY y el resto de pestañas) usa el mismo calendario.
 - **Comparar periodos**: un dato en hasta 4 periodos del mismo tamaño (día, semana, mes o año), alineados por su posición (mes 1…12, día 1…31, lunes…domingo). Superpuestos o uno por periodo (2×2, misma escala).
 - **Agrupación** de 15 min a año (las que no se pueden usar con el periodo salen desactivadas) y **líneas o barras**. Contadores: suma de cada intervalo y total. Valores instantáneos: el valor de cada 15 min o la media del intervalo; la tabla da media, mínimo y máximo.
 - Leyenda con el nombre completo (dato, planta o recinto, unidad y periodo); **Descargar PDF** (A4 horizontal, solo la gráfica, la tabla y el edificio) y **Descargar a Excel**.
